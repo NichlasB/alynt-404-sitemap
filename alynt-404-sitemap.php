@@ -1,13 +1,12 @@
 <?php
 /**
  * Plugin Name: Alynt 404 & Sitemap
- * Plugin URI: 
+ * Plugin URI: https://github.com/NichlasB/alynt-404-sitemap
  * Description: Enhanced 404 page and dynamic sitemap generator with extensive customization options.
- * Version: 1.0.0
+ * Version: 1.0.1
  * Requires at least: 5.8
  * Requires PHP: 7.4
  * Author: Alynt
- * Author URI: https://alynt.com
  * License: GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: alynt-404-sitemap
@@ -54,7 +53,7 @@ if (class_exists('YahnisElsts\PluginUpdateChecker\v5\PucFactory')) {
 }
 
 // Plugin version
-define('ALYNT_404_VERSION', '1.0.0');
+define('ALYNT_404_VERSION', '1.0.1');
 
 // Plugin directory path
 define('ALYNT_404_PATH', plugin_dir_path(__FILE__));
@@ -93,7 +92,7 @@ require_once ALYNT_404_PATH . 'includes/class-alynt-404-sitemap.php';
 /**
  * Begins execution of the plugin.
  *
- * @since 1.0.0
+ * @since 1.0.1
  */
 function alynt_404_run() {
     $plugin = new Alynt_404_Sitemap();

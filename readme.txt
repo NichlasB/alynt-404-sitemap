@@ -1,10 +1,10 @@
 === Alynt 404 & Sitemap ===
-Contributors: alynt
+Contributors: Alynt
 Tags: 404, sitemap, search, navigation
 Requires at least: 5.8
 Tested up to: 6.7.1
-Stable tag: 1.0.0
-Requires PHP: 7.4
+Stable tag: 1.0.1
+Requires PHP: 8.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -98,6 +98,10 @@ Yes, the plugin follows WCAG 2.1 guidelines and includes various accessibility f
 Yes, both the 404 page and sitemap support custom CSS through their respective settings tabs, allowing you to further customize their appearance beyond the built-in options.
 
 == Changelog ==
+
+= 1.0.1 =
+* Added GitHub-friendly README.md file
+* Improved documentation formatting and readability
 
 = 1.0.0 =
 * Initial release
