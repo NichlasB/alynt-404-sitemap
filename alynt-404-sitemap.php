@@ -7,9 +7,13 @@
  * Requires at least: 5.8
  * Requires PHP: 7.4
  * Author: Alynt
+ * Author URI: https://alynt.com
  * License: GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: alynt-404-sitemap
+ * GitHub Plugin URI: NichlasB/alynt-404-sitemap
+ * Primary Branch: main
+ * Release Asset: true
  *
  * @package Alynt_404_Sitemap
  */
@@ -47,9 +51,13 @@ if (class_exists('YahnisElsts\PluginUpdateChecker\v5\PucFactory')) {
 
     // Set the branch that contains the stable release
     $myUpdateChecker->setBranch('main');
-    
+
     // Enable GitHub releases
     $myUpdateChecker->getVcsApi()->enableReleaseAssets();
+
+    // Set the plugin to use GitHub releases instead of just the repository
+    $myUpdateChecker->getVcsApi()->enableReleaseAssets();
+
 }
 
 // Plugin version
