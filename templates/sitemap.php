@@ -19,19 +19,6 @@ $responsive_classes = Alynt_404_Public::get_instance()->get_responsive_classes()
 ?>
 
 <main id="primary" class="alynt-sitemap <?php echo esc_attr($responsive_classes); ?>" role="main">
-    <?php if (!empty($settings['featured_image'])): ?>
-        <div class="alynt-sitemap-image" aria-hidden="true">
-            <?php 
-            echo wp_get_attachment_image(
-                $settings['featured_image'],
-                'full',
-                false,
-                array('alt' => '')
-            ); 
-            ?>
-        </div>
-    <?php endif; ?>
-
     <h1>
         <?php echo esc_html($settings['heading'] ?? 'Sitemap'); ?>
     </h1>

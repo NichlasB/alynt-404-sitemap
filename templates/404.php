@@ -15,19 +15,6 @@ $settings = get_option(ALYNT_404_PREFIX . '404_settings', array());
 ?>
 
 <main id="primary" class="alynt-404-page" role="main">
-    <?php if (!empty($settings['featured_image'])): ?>
-        <div class="alynt-404-image" aria-hidden="true">
-            <?php 
-            echo wp_get_attachment_image(
-                $settings['featured_image'],
-                'full',
-                false,
-                array('alt' => '')
-            ); 
-            ?>
-        </div>
-    <?php endif; ?>
-
     <h1>
         <?php echo esc_html($settings['heading'] ?? "Oops! That page can't be found."); ?>
     </h1>

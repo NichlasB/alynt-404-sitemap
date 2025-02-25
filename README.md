@@ -90,7 +90,13 @@ Yes, both the 404 page and sitemap support custom CSS through their respective s
 
 ## Changelog
 
-## 1.0.1
+### 1.0.2
+* Removed dependency on YahnisElsts plugin update checker
+* Added compatibility with Alynt Git Updater
+* Reduced plugin file size by removing unnecessary dependencies
+* Updated plugin header format for GitHub integration
+
+### 1.0.1
 * Added GitHub-friendly README.md file
 * Improved documentation formatting and readability
 
@@ -99,8 +105,15 @@ Yes, both the 404 page and sitemap support custom CSS through their respective s
 
 ## Upgrade Notice
 
+### 1.0.2
+This update removes the dependency on the YahnisElsts plugin update checker and adds compatibility with Alynt Git Updater. The plugin now has a smaller file size and improved update process.
+
+### 1.0.1
+* Added GitHub-friendly README.md file
+* Improved documentation formatting and readability
+
 ### 1.0.0
-Initial release
+- Initial release
 
 ## License
 This plugin is licensed under the GPL v2 or later.
