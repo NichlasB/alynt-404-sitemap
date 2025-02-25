@@ -3,7 +3,7 @@ Contributors: Alynt
 Tags: 404, sitemap, search, navigation
 Requires at least: 5.8
 Tested up to: 6.7.2
-Stable tag: 1.0.2
+Stable tag: 1.0.1
 Requires PHP: 8.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -99,12 +99,6 @@ Yes, both the 404 page and sitemap support custom CSS through their respective s
 
 == Changelog ==
 
-= 1.0.2 =
-* Removed dependency on YahnisElsts plugin update checker
-* Added compatibility with Alynt Git Updater
-* Reduced plugin file size by removing unnecessary dependencies
-* Updated plugin header format for GitHub integration
-
 = 1.0.1 =
 * Added GitHub-friendly README.md file
 * Improved documentation formatting and readability
@@ -113,9 +107,6 @@ Yes, both the 404 page and sitemap support custom CSS through their respective s
 * Initial release
 
 == Upgrade Notice ==
-
-= 1.0.2 =
-This update removes the dependency on the YahnisElsts plugin update checker and adds compatibility with Alynt Git Updater. The plugin now has a smaller file size and improved update process.
 
 = 1.0.0 =
 Initial release
