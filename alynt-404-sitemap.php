@@ -3,17 +3,15 @@
  * Plugin Name: Alynt 404 & Sitemap
  * Plugin URI: https://github.com/NichlasB/alynt-404-sitemap
  * Description: Enhanced 404 page and dynamic sitemap generator with extensive customization options.
- * Version: 1.0.1
+ * Version: 1.0.3
  * Requires at least: 5.8
  * Requires PHP: 7.4
  * Author: Alynt
  * Author URI: https://alynt.com
  * License: GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain: alynt-404-sitemap
  * GitHub Plugin URI: NichlasB/alynt-404-sitemap
- * Primary Branch: main
- * Release Asset: true
+ * Text Domain: alynt-404-sitemap
  *
  * @package Alynt_404_Sitemap
  */
@@ -23,45 +21,8 @@ if (!defined('WPINC')) {
     die;
 }
 
-// Plugin Update Checker
-$composerAutoloaderPath = __DIR__ . '/vendor/autoload.php';
-$composerAutoloaderExists = false;
-
-// Check if any Composer autoloader is already loaded
-foreach (get_included_files() as $file) {
-    if (strpos($file, 'vendor/composer/autoload_real.php') !== false) {
-        $composerAutoloaderExists = true;
-        break;
-    }
-}
-
-// Only load our autoloader if no other Composer autoloader is loaded
-if (!$composerAutoloaderExists) {
-    require_once $composerAutoloaderPath;
-}
-
-use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
-
-if (class_exists('YahnisElsts\PluginUpdateChecker\v5\PucFactory')) {
-    $myUpdateChecker = PucFactory::buildUpdateChecker(
-        'https://github.com/NichlasB/alynt-404-sitemap',
-        __FILE__,
-        'alynt-404-sitemap'
-    );
-
-    // Set the branch that contains the stable release
-    $myUpdateChecker->setBranch('main');
-
-    // Enable GitHub releases
-    $myUpdateChecker->getVcsApi()->enableReleaseAssets();
-
-    // Set the plugin to use GitHub releases instead of just the repository
-    $myUpdateChecker->getVcsApi()->enableReleaseAssets();
-
-}
-
 // Plugin version
-define('ALYNT_404_VERSION', '1.0.1');
+define('ALYNT_404_VERSION', '1.0.3');
 
 // Plugin directory path
 define('ALYNT_404_PATH', plugin_dir_path(__FILE__));
@@ -100,7 +61,7 @@ require_once ALYNT_404_PATH . 'includes/class-alynt-404-sitemap.php';
 /**
  * Begins execution of the plugin.
  *
- * @since 1.0.1
+ * @since 1.0.3
  */
 function alynt_404_run() {
     $plugin = new Alynt_404_Sitemap();

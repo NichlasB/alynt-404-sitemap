@@ -3,8 +3,8 @@ Contributors: Alynt
 Tags: 404, sitemap, search, navigation
 Requires at least: 5.8
 Tested up to: 6.7.2
-Stable tag: 1.0.1
-Requires PHP: 8.0
+Stable tag: 1.0.3
+Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -99,14 +99,17 @@ Yes, both the 404 page and sitemap support custom CSS through their respective s
 
 == Changelog ==
 
+= 1.0.3 =
+* Removed the bundled GitHub update-checker implementation
+* Removed old Composer updater files from the repository
+* Updated repository maintenance and documentation files
+
+= 1.0.2 =
+* Added GitHub updater metadata and author URI
+
 = 1.0.1 =
 * Added GitHub-friendly README.md file
 * Improved documentation formatting and readability
 
 = 1.0.0 =
 * Initial release
-
-== Upgrade Notice ==
-
-= 1.0.0 =
-Initial release

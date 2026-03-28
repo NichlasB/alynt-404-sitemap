@@ -2,9 +2,9 @@
 
 Enhanced 404 error handling and dynamic sitemap generation with extensive customization options.
 
-![WordPress Plugin Required PHP Version](https://img.shields.io/badge/PHP-8.0%2B-blue)
-![WordPress Plugin: Tested WP Version](https://img.shields.io/badge/WordPress-6.7.1-green)
-![WordPress Plugin Version](https://img.shields.io/badge/Version-1.0.0-blue)
+![WordPress Plugin Required PHP Version](https://img.shields.io/badge/PHP-7.4%2B-blue)
+![WordPress Plugin: Tested WP Version](https://img.shields.io/badge/WordPress-6.7.2-green)
+![WordPress Plugin Version](https://img.shields.io/badge/Version-1.0.3-blue)
 ![License](https://img.shields.io/badge/License-GPLv2-blue)
 
 ## Description
@@ -90,17 +90,7 @@ Yes, both the 404 page and sitemap support custom CSS through their respective s
 
 ## Changelog
 
-## 1.0.1
-* Added GitHub-friendly README.md file
-* Improved documentation formatting and readability
-
-### 1.0.0
-- Initial release
-
-## Upgrade Notice
-
-### 1.0.0
-Initial release
+See [CHANGELOG.md](CHANGELOG.md) for detailed release history, including the latest tagged release and current unreleased maintenance work.
 
 ## License
 This plugin is licensed under the GPL v2 or later.
