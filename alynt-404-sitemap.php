@@ -12,14 +12,13 @@
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * GitHub Plugin URI: NichlasB/alynt-404-sitemap
  * Text Domain: alynt-404-sitemap
+ * Domain Path:      /languages
  *
  * @package Alynt_404_Sitemap
  */
 
-// If this file is called directly, abort.
-if (!defined('WPINC')) {
-    die;
-}
+// Prevent direct access.
+defined( 'ABSPATH' ) || exit;
 
 // Plugin version
 define('ALYNT_404_VERSION', '1.0.3');
@@ -32,6 +31,22 @@ define('ALYNT_404_URL', plugin_dir_url(__FILE__));
 
 // Plugin prefix
 define('ALYNT_404_PREFIX', 'alynt_404_');
+
+/**
+ * Load plugin text domain for translations.
+ *
+ * @since 1.0.3
+ *
+ * @return void
+ */
+function alynt_404_load_textdomain() {
+    load_plugin_textdomain(
+        'alynt-404-sitemap',
+        false,
+        dirname( plugin_basename( __FILE__ ) ) . '/languages'
+    );
+}
+add_action( 'init', 'alynt_404_load_textdomain' );
 
 /**
  * The code that runs during plugin activation.
@@ -68,3 +83,6 @@ function alynt_404_run() {
     $plugin->run();
 }
 alynt_404_run();
+
+
+

@@ -3,7 +3,11 @@
  * The public-facing functionality of the plugin.
  *
  * @package Alynt_404_Sitemap
+ * @since   1.0.0
  */
+
+// Prevent direct access.
+defined( 'ABSPATH' ) || exit;
 
 class Alynt_404_Public {
 
@@ -51,6 +55,7 @@ class Alynt_404_Public {
      * Initialize the class and set its properties.
      *
      * @since    1.0.0
+     * @return   void
      */
     private function __construct() {
         $this->plugin_name = 'alynt-404-sitemap';
@@ -62,22 +67,29 @@ class Alynt_404_Public {
      * Prevent cloning of the instance
      *
      * @since 1.0.0
+     * @return void
      */
-    private function __clone() {}
+    private function __clone() {
+        _doing_it_wrong(__FUNCTION__, esc_html__('Cloning is not allowed for this singleton.', 'alynt-404-sitemap'), '1.0.3');
+    }
 
     /**
      * Prevent unserializing of the instance
      *
      * @since 1.0.0
+     * @return void
      */
-    public function __wakeup() {}
+    public function __wakeup() {
+        _doing_it_wrong(__FUNCTION__, esc_html__('Unserializing is not allowed for this singleton.', 'alynt-404-sitemap'), '1.0.3');
+    }
 
         /**
      * Register the stylesheets for the public-facing side of the site.
      *
      * @since    1.0.0
+     * @return   void Enqueues public styles when the plugin output is in use.
      */
-        public function enqueue_styles() {
+    public function enqueue_styles() {
         // Only load styles when needed
             if (is_404()) {
                 wp_enqueue_style(
@@ -113,42 +125,56 @@ class Alynt_404_Public {
      * Register the JavaScript for the public-facing side of the site.
      *
      * @since    1.0.0
+     * @return   void Enqueues public scripts for the 404 search experience.
      */
     public function enqueue_scripts() {
         // Only load scripts when needed
-        if (is_404()) {
-            // First enqueue jQuery as a dependency
-            wp_enqueue_script('jquery');
-
-            // Then enqueue our search script
-            wp_enqueue_script(
-                $this->plugin_name . '-ajax-search',
-                plugin_dir_url(__FILE__) . 'js/ajax-search.js',
-                array('jquery'),
-                $this->version,
-                true
-            );
-
-            // Localize the script with necessary data
-            wp_localize_script(
-                $this->plugin_name . '-ajax-search',
-                'alynt404Search',
-                array(
-                    'ajaxurl' => admin_url('admin-ajax.php'),
-                    'nonce' => wp_create_nonce(ALYNT_404_PREFIX . 'search_nonce'),
-                    'messages' => array(
-                        'error' => esc_html__('Error loading results.', 'alynt-404-sitemap'),
-                        'noResults' => esc_html__('No results found.', 'alynt-404-sitemap')
-                    )
-                )
-            );
+        if (!is_404()) {
+            return;
         }
+
+        wp_enqueue_script('jquery');
+        $core_handle = $this->enqueue_search_script_modules();
+        wp_localize_script($core_handle, 'alynt404Search', $this->get_localized_search_vars());
+    }
+
+    /**
+     * Enqueue split public search modules.
+     *
+     * @since 1.0.3
+     * @return string Core script handle.
+     */
+    private function enqueue_search_script_modules() {
+        $core_handle = $this->plugin_name . '-search-core';
+        wp_enqueue_script($core_handle, plugin_dir_url(__FILE__) . 'js/search-core.js', array('jquery'), $this->version, true);
+        wp_enqueue_script($this->plugin_name . '-search-ui', plugin_dir_url(__FILE__) . 'js/search-ui.js', array($core_handle), $this->version, true);
+        wp_enqueue_script($this->plugin_name . '-search-api', plugin_dir_url(__FILE__) . 'js/search-api.js', array($this->plugin_name . '-search-ui'), $this->version, true);
+        wp_enqueue_script($this->plugin_name . '-ajax-search', plugin_dir_url(__FILE__) . 'js/ajax-search.js', array($this->plugin_name . '-search-api'), $this->version, true);
+        return $core_handle;
+    }
+
+    /**
+     * Localized search config.
+     *
+     * @since 1.0.3
+     * @return array Localized search configuration for client scripts.
+     */
+    private function get_localized_search_vars() {
+        return array(
+            'ajaxurl' => admin_url('admin-ajax.php'),
+            'nonce' => wp_create_nonce(ALYNT_404_PREFIX . 'search_nonce'),
+            'messages' => array(
+                'error' => esc_html__('Error loading results.', 'alynt-404-sitemap'),
+                'noResults' => esc_html__('No results found.', 'alynt-404-sitemap'),
+            ),
+        );
     }
 
     /**
      * Add custom rewrite rules.
      *
      * @since    1.0.0
+     * @return   void Registers the sitemap rewrite rule.
      */
     public function add_rewrite_rules() {
         $settings = get_option(ALYNT_404_PREFIX . 'sitemap_settings');
@@ -165,6 +191,7 @@ class Alynt_404_Public {
      * Add meta tags to head.
      *
      * @since    1.0.0
+     * @return   void Outputs meta description and custom CSS for plugin-managed views.
      */
     public function add_meta_tags() {
         if (is_404()) {
@@ -190,7 +217,7 @@ class Alynt_404_Public {
      * Get responsive classes based on settings.
      *
      * @since    1.0.0
-     * @return   string    Classes for responsive layout.
+     * @return   string    Responsive layout classes for the sitemap template.
      */
     public function get_responsive_classes() {
         $settings = get_option(ALYNT_404_PREFIX . 'sitemap_settings');
@@ -206,7 +233,7 @@ class Alynt_404_Public {
      * Check if current page is sitemap.
      *
      * @since    1.0.0
-     * @return   boolean
+     * @return   boolean   True when the current request matches the sitemap route.
      */
     public function is_sitemap() {
         return (bool) get_query_var(ALYNT_404_PREFIX . 'sitemap');
@@ -217,7 +244,7 @@ class Alynt_404_Public {
      *
      * @since    1.0.0
      * @param    array    $classes    Current body classes.
-     * @return   array    Modified body classes.
+     * @return   array    Updated body classes for plugin-rendered pages.
      */
     public function add_body_classes($classes) {
         if (is_404()) {
@@ -233,7 +260,7 @@ class Alynt_404_Public {
      *
      * @since    1.0.0
      * @param    array    $title    The document title parts.
-     * @return   array    Modified title parts.
+     * @return   array    Filtered document title parts.
      */
     public function filter_document_title($title) {
         if (get_query_var(ALYNT_404_PREFIX . 'sitemap')) {
@@ -244,3 +271,4 @@ class Alynt_404_Public {
     }
 
 }
+

@@ -175,6 +175,10 @@
     color: #646970;
 }
 
+.alynt-404-validation-notice {
+    margin: 0 0 12px;
+}
+
 /* Add button styles */
 .add-button-link {
     margin-top: 10px;

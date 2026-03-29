@@ -3,7 +3,11 @@
  * Handle color management and CSS generation.
  *
  * @package Alynt_404_Sitemap
+ * @since   1.0.0
  */
+
+// Prevent direct access.
+defined( 'ABSPATH' ) || exit;
 
 class Alynt_404_Color_Manager {
 
@@ -55,92 +59,89 @@ class Alynt_404_Color_Manager {
      */
     public function generate_css() {
         $colors = get_option(ALYNT_404_PREFIX . 'colors', $this->get_default_colors());
-        
-        // Start output buffering
+        return $this->build_404_css($colors) . $this->build_sitemap_css($colors) . $this->build_hover_css($colors);
+    }
+
+    /**
+     * Build 404-specific CSS rules.
+     *
+     * @since 1.0.3
+     * @param array $colors Color config.
+     * @return string CSS rules for the 404 template.
+     */
+    private function build_404_css($colors) {
         ob_start();
-        
-        // 404 Page Styles
         ?>
         <?php if (!empty($colors['headings'])): ?>
         .alynt-404-page h1,
         .alynt-404-page h2,
-        .alynt-404-page h3 {
-            color: <?php echo esc_attr($colors['headings']); ?>;
-        }
+        .alynt-404-page h3 { color: <?php echo esc_attr($colors['headings']); ?>; }
         <?php endif; ?>
-
         <?php if (!empty($colors['paragraph'])): ?>
-        .alynt-404-page p {
-            color: <?php echo esc_attr($colors['paragraph']); ?>;
-        }
+        .alynt-404-page p { color: <?php echo esc_attr($colors['paragraph']); ?>; }
         <?php endif; ?>
-
         <?php if (!empty($colors['links'])): ?>
-        .alynt-404-page a {
-            color: <?php echo esc_attr($colors['links']); ?>;
-        }
+        .alynt-404-page a { color: <?php echo esc_attr($colors['links']); ?>; }
         <?php endif; ?>
-
         <?php if (!empty($colors['search_text']) || !empty($colors['search_background']) || !empty($colors['search_border'])): ?>
         .alynt-404-search input[type="text"] {
-            <?php if (!empty($colors['search_text'])): ?>
-            color: <?php echo esc_attr($colors['search_text']); ?>;
-            <?php endif; ?>
-            <?php if (!empty($colors['search_background'])): ?>
-            background-color: <?php echo esc_attr($colors['search_background']); ?>;
-            <?php endif; ?>
-            <?php if (!empty($colors['search_border'])): ?>
-            border-color: <?php echo esc_attr($colors['search_border']); ?>;
-            <?php endif; ?>
+            <?php if (!empty($colors['search_text'])): ?>color: <?php echo esc_attr($colors['search_text']); ?>;<?php endif; ?>
+            <?php if (!empty($colors['search_background'])): ?>background-color: <?php echo esc_attr($colors['search_background']); ?>;<?php endif; ?>
+            <?php if (!empty($colors['search_border'])): ?>border-color: <?php echo esc_attr($colors['search_border']); ?>;<?php endif; ?>
         }
         <?php endif; ?>
-
         <?php if (!empty($colors['buttons']) || !empty($colors['button_text'])): ?>
         .alynt-404-button {
-            <?php if (!empty($colors['buttons'])): ?>
-            background-color: <?php echo esc_attr($colors['buttons']); ?>;
-            <?php endif; ?>
-            <?php if (!empty($colors['button_text'])): ?>
-            color: <?php echo esc_attr($colors['button_text']); ?>;
-            <?php endif; ?>
-        }
-        <?php endif; ?>
-
-        /* Sitemap Styles */
-        <?php if (!empty($colors['headings'])): ?>
-        .alynt-sitemap h1,
-        .alynt-sitemap h2 {
-            color: <?php echo esc_attr($colors['headings']); ?>;
-        }
-        <?php endif; ?>
-
-        <?php if (!empty($colors['paragraph'])): ?>
-        .alynt-sitemap p {
-            color: <?php echo esc_attr($colors['paragraph']); ?>;
-        }
-        <?php endif; ?>
-
-        <?php if (!empty($colors['links'])): ?>
-        .alynt-sitemap a {
-            color: <?php echo esc_attr($colors['links']); ?>;
-        }
-        <?php endif; ?>
-
-        /* Hover States */
-        <?php if (!empty($colors['buttons'])): ?>
-        .alynt-404-button:hover {
-            background-color: <?php echo esc_attr($this->adjust_brightness($colors['buttons'], -15)); ?>;
-        }
-        <?php endif; ?>
-
-        <?php if (!empty($colors['links'])): ?>
-        .alynt-404-page a:hover,
-        .alynt-sitemap a:hover {
-            color: <?php echo esc_attr($this->adjust_brightness($colors['links'], -15)); ?>;
+            <?php if (!empty($colors['buttons'])): ?>background-color: <?php echo esc_attr($colors['buttons']); ?>;<?php endif; ?>
+            <?php if (!empty($colors['button_text'])): ?>color: <?php echo esc_attr($colors['button_text']); ?>;<?php endif; ?>
         }
         <?php endif; ?>
         <?php
-        
+        return ob_get_clean();
+    }
+
+    /**
+     * Build sitemap-specific CSS rules.
+     *
+     * @since 1.0.3
+     * @param array $colors Color config.
+     * @return string CSS rules for the sitemap template.
+     */
+    private function build_sitemap_css($colors) {
+        ob_start();
+        ?>
+        <?php if (!empty($colors['headings'])): ?>
+        .alynt-sitemap h1,
+        .alynt-sitemap h2 { color: <?php echo esc_attr($colors['headings']); ?>; }
+        <?php endif; ?>
+        <?php if (!empty($colors['paragraph'])): ?>
+        .alynt-sitemap p { color: <?php echo esc_attr($colors['paragraph']); ?>; }
+        <?php endif; ?>
+        <?php if (!empty($colors['links'])): ?>
+        .alynt-sitemap a { color: <?php echo esc_attr($colors['links']); ?>; }
+        <?php endif; ?>
+        <?php
+        return ob_get_clean();
+    }
+
+    /**
+     * Build shared hover-state CSS rules.
+     *
+     * @since 1.0.3
+     * @param array $colors Color config.
+     * @return string Shared hover-state CSS rules.
+     */
+    private function build_hover_css($colors) {
+        ob_start();
+        ?>
+        <?php if (!empty($colors['buttons'])): ?>
+        .alynt-404-button:hover { background-color: <?php echo esc_attr($this->adjust_brightness($colors['buttons'], -15)); ?>; }
+        <?php endif; ?>
+        <?php if (!empty($colors['links'])): ?>
+        .alynt-404-page a:hover,
+        .alynt-sitemap a:hover { color: <?php echo esc_attr($this->adjust_brightness($colors['links'], -15)); ?>; }
+        <?php endif; ?>
+        <?php
         return ob_get_clean();
     }
 
@@ -260,3 +261,4 @@ class Alynt_404_Color_Manager {
         return "rgba($r, $g, $b, $alpha)";
     }
 }
+

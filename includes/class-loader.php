@@ -3,7 +3,11 @@
  * Register all actions and filters for the plugin.
  *
  * @package Alynt_404_Sitemap
+ * @since   1.0.0
  */
+
+// Prevent direct access.
+defined( 'ABSPATH' ) || exit;
 
 class Alynt_404_Loader {
 
@@ -150,3 +154,4 @@ class Alynt_404_Loader {
         );
     }
 }
+

@@ -3,12 +3,13 @@
  * 404 page settings tab partial.
  *
  * @package Alynt_404_Sitemap
+ * @since   1.0.0
  */
 
+// Prevent direct access.
+defined( 'ABSPATH' ) || exit;
+
 // If this file is called directly, abort.
-if (!defined('WPINC')) {
-    die;
-}
 
 $settings = get_option(ALYNT_404_PREFIX . '404_settings', array());
 $post_types = Alynt_404_Post_Types::get_instance()->get_public_post_types();
@@ -123,6 +124,7 @@ $post_types = Alynt_404_Post_Types::get_instance()->get_public_post_types();
 <div class="alynt-404-settings-section">
     <h2><?php _e('Quick Links', 'alynt-404-sitemap'); ?></h2>
     <div class="alynt-404-button-links" data-max-buttons="4">
+        <div class="notice notice-error inline alynt-404-validation-notice" hidden></div>
         <div class="button-links-container">
             <?php 
             $button_links = $settings['button_links'] ?? array();
@@ -245,3 +247,4 @@ $post_types = Alynt_404_Post_Types::get_instance()->get_public_post_types();
         </div>
     </div>
 </script>
+

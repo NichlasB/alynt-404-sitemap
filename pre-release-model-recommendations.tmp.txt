@@ -1,0 +1,151 @@
+PLUGIN MODEL ASSESSMENT
+Plugin: alynt-404-sitemap
+Date: 2026-03-29
+Assessed from: C:\Development\WordPress\Plugins\alynt-404-sitemap
+
+OVERALL ASSESSMENT
+- Size: Medium
+- Coupling: Medium
+- UI/UX complexity: Medium
+- Data complexity: Low
+- Integration/failure-mode complexity: Medium
+- Security surface: Medium
+
+WORKFLOW RECOMMENDATIONS
+
+1. Code Cleanup
+Recommended models: GPT-5.3 Codex
+Reasoning: Low
+OpenAI-only substitute: GPT-5.3 Codex
+Cheaper acceptable alternative: None recommended
+Confidence: High
+Why:
+- The plugin is only about 21 PHP files, 2 JavaScript files, and 3 CSS files, so cleanup is bounded.
+- Most likely cleanup targets are mechanical in the large admin class, AJAX handler, and admin script.
+
+2. File Structure & Refactoring
+Recommended models: GPT-5.4 -> GPT-5.3 Codex
+Reasoning: High -> Medium
+OpenAI-only substitute: GPT-5.4 -> GPT-5.3 Codex
+Cheaper acceptable alternative: GPT-5.4 Mini -> GPT-5.3 Codex
+Confidence: High
+Why:
+- There is one clearly oversized PHP file (`admin/class-admin.php`, 433 lines) and one oversized JavaScript file (`admin/js/admin-scripts.js`, 285 lines).
+- The plugin already has class and directory boundaries, so this looks like obvious decomposition work rather than architecture-heavy redesign.
+
+3. Documentation Review
+Recommended models: Claude Sonnet 4.6
+Reasoning: Medium
+OpenAI-only substitute: GPT-5.4
+Cheaper acceptable alternative: GPT-5.4 Mini
+Confidence: High
+Why:
+- The plugin has `README.md`, `readme.txt`, `CHANGELOG.md`, and `docs/admin-guide.md`, so the work is prose-heavy rather than code-heavy.
+- The repo is owner-managed and benefits from stronger writing judgment more than deep architectural reasoning.
+
+4. Internationalization Review
+Recommended models: GPT-5.3 Codex
+Reasoning: Medium
+OpenAI-only substitute: GPT-5.3 Codex
+Cheaper acceptable alternative: None recommended
+Confidence: High
+Why:
+- The plugin has many repeated UI strings across admin partials, templates, and AJAX messages, which is pattern-based review work.
+- Text-domain usage is centralized and conventional enough that bounded transformation should be efficient.
+
+5. Accessibility Review
+Recommended models: Claude Sonnet 4.6
+Reasoning: High
+OpenAI-only substitute: GPT-5.4
+Cheaper acceptable alternative: GPT-5.4 Mini
+Confidence: Medium
+Why:
+- The plugin has both admin settings screens and frontend interactive search results, so accessibility concerns span forms, templates, and JavaScript behavior.
+- It already uses ARIA and keyboard-navigation patterns, which means the review needs standards judgment rather than simple string replacement.
+
+6. Error Handling & UX Review
+Recommended models: GPT-5.4 -> GPT-5.4
+Reasoning: High -> High
+OpenAI-only substitute: GPT-5.4 -> GPT-5.4
+Cheaper acceptable alternative: GPT-5.4 -> GPT-5.4 Mini
+Confidence: Medium
+Why:
+- The plugin has AJAX search, settings saves, rewrite-based sitemap routing, and generated CSS file writes, so there are real failure paths to inventory.
+- It is not integration-heavy or background-job-heavy, so Opus-level depth is probably unnecessary for this plugin's UX/error surface.
+
+7. WordPress Best Practices Review
+Recommended models: GPT-5.4 -> GPT-5.3 Codex
+Reasoning: High -> Medium
+OpenAI-only substitute: GPT-5.4 -> GPT-5.3 Codex
+Cheaper acceptable alternative: GPT-5.4 Mini -> GPT-5.3 Codex
+Confidence: High
+Why:
+- The plugin touches rewrite rules, AJAX, option storage, transients, template loading, and uploads, so a WordPress-specific inventory pass matters.
+- Once the issues are listed, most fixes should be straightforward implementation work.
+
+8. Performance Review
+Recommended models: GPT-5.4 -> GPT-5.4
+Reasoning: High -> Medium
+OpenAI-only substitute: GPT-5.4 -> GPT-5.4
+Cheaper acceptable alternative: GPT-5.4 Mini
+Confidence: Medium
+Why:
+- The main performance risks are standard WordPress patterns like `posts_per_page => -1`, repeated option lookups, and query work in templates.
+- There are no custom tables, queues, imports, or large-data pipelines that justify the default Opus-level performance path.
+
+9. Database Review
+Recommended models: GPT-5.4
+Reasoning: High
+OpenAI-only substitute: GPT-5.4
+Cheaper acceptable alternative: GPT-5.4 Mini
+Confidence: High
+Why:
+- The plugin uses standard WordPress options, transients, post meta, user meta, and `WP_Query`, with no custom tables or migrations.
+- This is mainly an inventory-and-verification task, not a schema-design task.
+
+10. Uninstall Review
+Recommended models: GPT-5.3 Codex
+Reasoning: Medium
+OpenAI-only substitute: GPT-5.3 Codex
+Cheaper acceptable alternative: None recommended
+Confidence: High
+Why:
+- `uninstall.php` already exists and cleanup targets are finite: options, transients, meta, generated CSS files, cron hooks, and rewrite rules.
+- The work is checklist-driven and suits a bounded execution model well.
+
+11. Edge Cases Review
+Recommended models: GPT-5.4
+Reasoning: High
+OpenAI-only substitute: GPT-5.4
+Cheaper acceptable alternative: GPT-5.4 Mini
+Confidence: Medium
+Why:
+- Edge cases are concentrated around empty search results, invalid slugs, file write failures, missing templates, and odd content-selection states.
+- The plugin has enough state to need structured exploration, but not enough external dependency complexity to require the default Opus follow-up.
+
+12. Code Quality Review
+Recommended models: GPT-5.3 Codex
+Reasoning: Medium
+OpenAI-only substitute: GPT-5.3 Codex
+Cheaper acceptable alternative: GPT-5.4 Mini
+Confidence: High
+Why:
+- The likely issues are duplicated option handling, long methods, and naming consistency in a few concentrated files.
+- This is bounded cleanup after earlier review passes, which is where Codex is strongest.
+
+13. Security Audit
+Recommended models: Claude Opus 4.6
+Reasoning: High
+OpenAI-only substitute: GPT-5.4
+Cheaper acceptable alternative: None recommended
+Confidence: High
+Why:
+- The plugin exposes unauthenticated AJAX search, privileged settings flows, file writes, and direct superglobal handling, so it has a meaningful review surface.
+- Security remains high-stakes even though the plugin is not very large, and this is the one workflow where deeper judgment is still worth the cost.
+
+SUMMARY
+- Tasks where default guide is sufficient: Code Cleanup, Documentation Review, Internationalization Review, Accessibility Review, WordPress Best Practices Review, Uninstall Review, Code Quality Review, Security Audit
+- Tasks where this plugin should deviate from default guide: File Structure & Refactoring, Error Handling & UX Review, Performance Review, Database Review, Edge Cases Review
+- Tasks where Extra High is justified: None
+- Highest-cost workflows for this plugin: Security Audit, Accessibility Review, Error Handling & UX Review
+- Best places to save cost safely: Database Review, Performance Review, Edge Cases Review, Documentation Review on a budget

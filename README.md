@@ -11,6 +11,13 @@ Enhanced 404 error handling and dynamic sitemap generation with extensive custom
 
 Alynt 404 & Sitemap provides a comprehensive solution for handling 404 errors and creating dynamic sitemaps on your WordPress website.
 
+## Requirements
+
+- WordPress 5.8 or later
+- PHP 7.4 or later
+- Pretty permalinks enabled for the custom sitemap route
+- Media Library access if you want to assign featured images in plugin settings
+
 ### Key Features
 
 #### Custom 404 Page
@@ -68,6 +75,28 @@ Alynt 404 & Sitemap provides a comprehensive solution for handling 404 errors an
 2. Activate the plugin through the 'Plugins' screen in WordPress
 3. Configure settings under '404 & Sitemap' in the admin menu
 
+## Usage
+
+After activation, open `404 & Sitemap` in the WordPress admin menu and configure the three tabs:
+
+- `General`: shared color palette for buttons, links, headings, and search UI
+- `404`: heading, message, quick links, search post types, featured image, meta description, and custom CSS
+- `Sitemap`: heading, message, URL slug, included post types, excluded IDs, responsive columns, featured image, meta description, and custom CSS
+
+The sitemap becomes available at `/{url_slug}` using the slug saved in the Sitemap tab. If the requested slug conflicts with an existing route, the plugin automatically adjusts it to an available value during sanitization.
+
+## Documentation
+
+- Administrator guide: [docs/admin-guide.md](docs/admin-guide.md)
+- Settings reference: [docs/SETTINGS.md](docs/SETTINGS.md)
+- Hooks reference: [docs/HOOKS.md](docs/HOOKS.md)
+
+## Examples
+
+- Use the 404 tab to add quick links back to key landing pages when visitors hit a missing URL.
+- Use the Sitemap tab to exclude utility pages or private landing pages by ID while still exposing your main site structure.
+- Use the General tab to align the plugin UI colors with your theme without editing template files.
+
 ## Frequently Asked Questions
 
 ### Can I customize the colors to match my theme?
@@ -91,6 +120,11 @@ Yes, both the 404 page and sitemap support custom CSS through their respective s
 ## Changelog
 
 See [CHANGELOG.md](CHANGELOG.md) for detailed release history, including the latest tagged release and current unreleased maintenance work.
+
+## Credits
+
+- Alynt for the plugin
+- WordPress core APIs for settings, routing, templating, and media integration
 
 ## License
 This plugin is licensed under the GPL v2 or later.

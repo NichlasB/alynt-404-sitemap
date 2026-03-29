@@ -164,8 +164,7 @@ For additional support:
    - Test keyboard navigation
    - Verify screen reader compatibility
 
-
-For inline documentation, I've already included comprehensive DocBlocks in the PHP files, but here's an example of the standard we're following:
+For inline documentation, the plugin aims to use WordPress-style DocBlocks in PHP files. The example below reflects the intended format for future maintenance work:
 
 ```php
 /**

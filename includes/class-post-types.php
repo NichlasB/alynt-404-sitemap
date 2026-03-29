@@ -3,7 +3,11 @@
  * Handle post type operations.
  *
  * @package Alynt_404_Sitemap
+ * @since   1.0.0
  */
+
+// Prevent direct access.
+defined( 'ABSPATH' ) || exit;
 
 class Alynt_404_Post_Types {
 
@@ -249,3 +253,4 @@ class Alynt_404_Post_Types {
         return $hierarchy;
     }
 }
+

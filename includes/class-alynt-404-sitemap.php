@@ -3,7 +3,11 @@
  * The core plugin class.
  *
  * @package Alynt_404_Sitemap
+ * @since   1.0.0
  */
+
+// Prevent direct access.
+defined( 'ABSPATH' ) || exit;
 
 class Alynt_404_Sitemap {
 
@@ -60,6 +64,8 @@ class Alynt_404_Sitemap {
 
         // The class responsible for defining all admin-specific functionality
         require_once ALYNT_404_PATH . 'admin/class-admin.php';
+        require_once ALYNT_404_PATH . 'admin/class-admin-page.php';
+        require_once ALYNT_404_PATH . 'admin/class-settings-sanitizer.php';
 
         // The class responsible for defining all public-facing functionality
         require_once ALYNT_404_PATH . 'public/class-public.php';
@@ -78,6 +84,7 @@ class Alynt_404_Sitemap {
 
         // The class responsible for utility functions
         require_once ALYNT_404_PATH . 'includes/class-utilities.php';
+        require_once ALYNT_404_PATH . 'includes/class-settings-defaults.php';
 
         $this->loader = new Alynt_404_Loader();
     }
@@ -90,7 +97,9 @@ class Alynt_404_Sitemap {
      * @access   private
      */
     private function define_admin_hooks() {
-        $plugin_admin = new Alynt_404_Admin($this->get_plugin_name(), $this->get_version());
+        $admin_page = new Alynt_404_Admin_Page($this->get_plugin_name());
+        $sanitizer = new Alynt_404_Settings_Sanitizer();
+        $plugin_admin = new Alynt_404_Admin($this->get_plugin_name(), $this->get_version(), $admin_page, $sanitizer);
 
         $this->loader->add_action('admin_enqueue_scripts', $plugin_admin, 'enqueue_styles');
         $this->loader->add_action('admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts');
@@ -109,7 +118,7 @@ class Alynt_404_Sitemap {
         $template_loader = Alynt_404_Template_Loader::get_instance();
         
         // Initialize AJAX handler
-        $ajax_handler = new Alynt_404_Ajax_Handler();
+        new Alynt_404_Ajax_Handler();
 
         // Public assets
         $this->loader->add_action('wp_enqueue_scripts', $plugin_public, 'enqueue_styles');
@@ -125,9 +134,6 @@ class Alynt_404_Sitemap {
         // Add meta tags
         $this->loader->add_action('wp_head', $plugin_public, 'add_meta_tags');
 
-        // Register AJAX actions
-        $this->loader->add_action('wp_ajax_alynt_404_search', $ajax_handler, 'handle_search');
-        $this->loader->add_action('wp_ajax_nopriv_alynt_404_search', $ajax_handler, 'handle_search');
     }
 
     /**
@@ -170,3 +176,4 @@ class Alynt_404_Sitemap {
         return $this->version;
     }
 }
+

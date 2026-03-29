@@ -5,9 +5,9 @@
  * @package Alynt_404_Sitemap
  */
 
-if (!defined('WPINC')) {
-    die;
-}
+
+// Prevent direct access.
+defined( 'ABSPATH' ) || exit;
 
 get_header();
 

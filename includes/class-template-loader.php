@@ -3,7 +3,11 @@
  * Handle template loading operations.
  *
  * @package Alynt_404_Sitemap
+ * @since   1.0.0
  */
+
+// Prevent direct access.
+defined( 'ABSPATH' ) || exit;
 
 class Alynt_404_Template_Loader {
 
@@ -44,14 +48,18 @@ class Alynt_404_Template_Loader {
      *
      * @since 1.0.0
      */
-    private function __clone() {}
+    private function __clone() {
+        _doing_it_wrong(__FUNCTION__, esc_html__('Cloning is not allowed for this singleton.', 'alynt-404-sitemap'), '1.0.3');
+    }
 
     /**
      * Prevent unserializing of the instance
      *
      * @since 1.0.0
      */
-    public function __wakeup() {}
+    public function __wakeup() {
+        _doing_it_wrong(__FUNCTION__, esc_html__('Unserializing is not allowed for this singleton.', 'alynt-404-sitemap'), '1.0.3');
+    }
 
     /**
      * Add custom query vars.
@@ -210,3 +218,4 @@ class Alynt_404_Template_Loader {
         return (bool) get_query_var(ALYNT_404_PREFIX . 'sitemap');
     }
 }
+

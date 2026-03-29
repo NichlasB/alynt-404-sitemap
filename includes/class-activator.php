@@ -3,7 +3,11 @@
  * Fired during plugin activation.
  *
  * @package Alynt_404_Sitemap
+ * @since   1.0.0
  */
+
+// Prevent direct access.
+defined( 'ABSPATH' ) || exit;
 
 class Alynt_404_Activator {
 
@@ -54,47 +58,13 @@ class Alynt_404_Activator {
      * @since 1.0.0
      */
     private static function set_default_options() {
-        // Default color options
-        $default_colors = array(
-            'headings' => '#333333',
-            'paragraph' => '#333333',
-            'links' => '#0073aa',
-            'buttons' => '#0073aa',
-            'button_text' => '#ffffff',
-            'search_border' => '#dddddd',
-            'search_text' => '#333333',
-            'search_background' => '#ffffff'
-        );
+        if (!class_exists('Alynt_404_Settings_Defaults')) {
+            require_once ALYNT_404_PATH . 'includes/class-settings-defaults.php';
+        }
 
-        // Default 404 page options
-        $default_404 = array(
-            'heading' => "Oops! That page can't be found.",
-            'message' => "Looks like this page took a wrong turn. Let's get you back to where you need to be.",
-            'button_links' => array(),
-            'search_post_types' => array('post', 'page'),
-            'meta_description' => 'Page not found. Use our search or navigation to find what you are looking for.',
-            'custom_css' => '',
-            'featured_image' => 0
-        );
-
-        // Default sitemap options
-        $default_sitemap = array(
-            'heading' => 'Sitemap',
-            'message' => "Here's our website at a glance. Use this sitemap to quickly find what you're looking for.",
-            'url_slug' => 'sitemap',
-            'post_types' => array('post', 'page'),
-            'excluded_ids' => '',
-            'meta_description' => 'Looking for something specific? Use our sitemap to easily navigate all our website content.',
-            'custom_css' => '',
-            'featured_image' => 0,
-            'columns_desktop' => 4,
-            'columns_tablet' => 2,
-            'columns_mobile' => 1,
-            'sort_order' => array(
-                'post' => 'alphabetical',
-                'page' => 'alphabetical'
-            )
-        );
+        $default_colors = Alynt_404_Settings_Defaults::get_color_defaults();
+        $default_404 = Alynt_404_Settings_Defaults::get_404_defaults();
+        $default_sitemap = Alynt_404_Settings_Defaults::get_sitemap_defaults();
 
         // Add options only if they don't exist
         if (false === get_option(ALYNT_404_PREFIX . 'colors')) {
@@ -130,3 +100,4 @@ class Alynt_404_Activator {
         flush_rewrite_rules();
     }
 }
+

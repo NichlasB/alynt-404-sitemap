@@ -3,7 +3,11 @@
  * Handle all AJAX operations.
  *
  * @package Alynt_404_Sitemap
+ * @since   1.0.0
  */
+
+// Prevent direct access.
+defined( 'ABSPATH' ) || exit;
 
 class Alynt_404_Ajax_Handler {
 
@@ -296,3 +300,4 @@ class Alynt_404_Ajax_Handler {
         update_option(ALYNT_404_PREFIX . 'sitemap_settings', $settings);
     }
 }
+

@@ -3,12 +3,13 @@
  * Sitemap settings tab partial.
  *
  * @package Alynt_404_Sitemap
+ * @since   1.0.0
  */
 
+// Prevent direct access.
+defined( 'ABSPATH' ) || exit;
+
 // If this file is called directly, abort.
-if (!defined('WPINC')) {
-    die;
-}
 
 $settings = get_option(ALYNT_404_PREFIX . 'sitemap_settings', array());
 $post_types = Alynt_404_Post_Types::get_instance()->get_public_post_types();
@@ -99,6 +100,7 @@ $post_types = Alynt_404_Post_Types::get_instance()->get_public_post_types();
                 </label>
             </th>
             <td>
+                <div class="notice notice-error inline alynt-404-validation-notice" hidden></div>
                 <input type="text" 
                        id="sitemap_url_slug" 
                        name="<?php echo ALYNT_404_PREFIX; ?>sitemap_settings[url_slug]" 
@@ -266,3 +268,4 @@ $post_types = Alynt_404_Post_Types::get_instance()->get_public_post_types();
         </tr>
     </table>
 </div>
+

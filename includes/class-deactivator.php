@@ -3,7 +3,11 @@
  * Fired during plugin deactivation.
  *
  * @package Alynt_404_Sitemap
+ * @since   1.0.0
  */
+
+// Prevent direct access.
+defined( 'ABSPATH' ) || exit;
 
 class Alynt_404_Deactivator {
 
@@ -83,16 +87,5 @@ class Alynt_404_Deactivator {
             }
         }
     }
-
-    /**
-     * Log deactivation for debugging purposes if WP_DEBUG is enabled.
-     *
-     * @param string $message The message to log
-     * @return void
-     */
-    private static function log_deactivation($message) {
-        if (defined('WP_DEBUG') && WP_DEBUG === true) {
-            error_log('Alynt 404 & Sitemap Deactivation: ' . $message);
-        }
-    }
 }
+

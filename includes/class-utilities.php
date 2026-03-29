@@ -3,7 +3,11 @@
  * Utility functions for the plugin.
  *
  * @package Alynt_404_Sitemap
+ * @since   1.0.0
  */
+
+// Prevent direct access.
+defined( 'ABSPATH' ) || exit;
 
 class Alynt_404_Utilities {
 
@@ -243,6 +247,7 @@ class Alynt_404_Utilities {
      * @since 1.0.0
      * @param string $url URL to redirect to.
      * @param int    $status HTTP status code.
+     * @return void
      */
     public function safe_redirect($url, $status = 302) {
         $url = wp_sanitize_redirect($url);
@@ -272,28 +277,11 @@ class Alynt_404_Utilities {
     public function current_user_can_manage() {
         return current_user_can('manage_options');
     }
-
-    /**
-     * Log error message if debugging is enabled.
-     *
-     * @since 1.0.0
-     * @param string $message Error message.
-     * @param mixed  $data Additional data to log.
-     */
-    public function log_error($message, $data = null) {
-        if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log(sprintf(
-                '[Alynt 404 & Sitemap] %s | Data: %s',
-                $message,
-                print_r($data, true)
-            ));
-        }
-    }
-
     /**
      * Clean up expired transients.
      *
      * @since 1.0.0
+     * @return void
      */
     public function cleanup_transients() {
         global $wpdb;
@@ -309,3 +297,4 @@ class Alynt_404_Utilities {
         );
     }
 }
+

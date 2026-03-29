@@ -5,9 +5,9 @@
  * @package Alynt_404_Sitemap
  */
 
-if (!defined('WPINC')) {
-    die;
-}
+// Prevent direct access.
+defined( 'ABSPATH' ) || exit;
+
 ?>
 
 <div class="alynt-404-search" role="search">

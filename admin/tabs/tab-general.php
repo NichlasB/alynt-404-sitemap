@@ -3,12 +3,13 @@
  * General settings tab partial.
  *
  * @package Alynt_404_Sitemap
+ * @since   1.0.0
  */
 
+// Prevent direct access.
+defined( 'ABSPATH' ) || exit;
+
 // If this file is called directly, abort.
-if (!defined('WPINC')) {
-    die;
-}
 
 $colors = get_option(ALYNT_404_PREFIX . 'colors', array());
 $default_colors = Alynt_404_Color_Manager::get_instance()->get_default_colors();
@@ -239,3 +240,4 @@ $default_colors = Alynt_404_Color_Manager::get_instance()->get_default_colors();
         <!-- Live preview of color selections will be rendered here via JavaScript -->
     </div>
 </div>
+

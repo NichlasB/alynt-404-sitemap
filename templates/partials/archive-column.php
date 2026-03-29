@@ -5,9 +5,9 @@
  * @package Alynt_404_Sitemap
  */
 
-if (!defined('WPINC')) {
-    die;
-}
+
+// Prevent direct access.
+defined( 'ABSPATH' ) || exit;
 
 $post_type_obj = get_post_type_object($post_type);
 if (!$post_type_obj) return;
