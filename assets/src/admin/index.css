@@ -1,1 +1,78 @@
-/* Build entry reserved for future admin assets. */
+/**
+ * Admin styles for the plugin settings page.
+ */
+
+.alynt-404-form .form-table th {
+    width: 200px;
+}
+
+.alynt-404-form textarea {
+    min-height: 100px;
+    width: 100%;
+}
+
+.alynt-404-media-upload .image-preview img {
+    display: block;
+    height: auto;
+    margin-bottom: 10px;
+    max-width: 300px;
+}
+
+.alynt-404-button-links .button-link-item {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    margin-bottom: 10px;
+    padding: 15px;
+}
+
+.alynt-404-button-links .button-link-fields {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: 1fr 1fr auto;
+}
+
+.alynt-404-button-links .button-link-item.error {
+    border-color: #dc3232;
+}
+
+.alynt-404-form .error,
+.alynt-404-form .error input,
+.alynt-404-form input.error,
+.alynt-404-form textarea.error,
+.alynt-404-form select.error {
+    border-color: #d63638;
+}
+
+.alynt-404-color-preview {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    margin-top: 20px;
+    padding: 20px;
+}
+
+.alynt-404-color-preview .preview-item {
+    margin-bottom: 15px;
+}
+
+.alynt-404-validation-notice {
+    color: #b32d2e;
+    display: block;
+    font-weight: 600;
+    margin-top: 8px;
+}
+
+.alynt-404-validation-notice[hidden] {
+    display: none;
+}
+
+.alynt-404-field-error {
+    color: #b32d2e;
+    font-size: 13px;
+    font-weight: 600;
+    margin-top: 6px;
+}
+
+.alynt-404-submit.is-busy,
+.alynt-404-reset-button.is-busy {
+    opacity: 0.85;
+}

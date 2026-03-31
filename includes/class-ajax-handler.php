@@ -9,295 +9,350 @@
 // Prevent direct access.
 defined( 'ABSPATH' ) || exit;
 
+/**
+ * Handles AJAX requests for the plugin.
+ *
+ * @since 1.0.0
+ */
 class Alynt_404_Ajax_Handler {
 
-    /**
-     * Duration for rate limiting in seconds
-     *
-     * @var int
-     */
-    private $rate_limit_duration;
+	/**
+	 * Duration for rate limiting in seconds.
+	 *
+	 * @var int
+	 */
+	private $rate_limit_duration;
 
-    /**
-     * Maximum number of requests allowed per duration
-     *
-     * @var int
-     */
-    private $rate_limit_requests;
+	/**
+	 * Maximum number of requests allowed per duration.
+	 *
+	 * @var int
+	 */
+	private $rate_limit_requests;
 
-    /**
-     * Initialize the class.
-     *
-     * @since 1.0.0
-     */
-    public function __construct() {
-        // Rate limiting properties
-        $this->rate_limit_duration = 10; // seconds
-        $this->rate_limit_requests = 5;  // max requests per duration
+	/**
+	 * Initialize the class.
+	 *
+	 * @since 1.0.0
+	 */
+	public function __construct() {
+		// Allow five requests every ten seconds.
+		$this->rate_limit_duration = 10;
+		$this->rate_limit_requests = 5;
 
-        // Register AJAX actions
-        add_action('wp_ajax_alynt_404_search', [$this, 'handle_search']);
-        add_action('wp_ajax_nopriv_alynt_404_search', [$this, 'handle_search']);
-    }
+		// Register AJAX actions.
+		add_action( 'wp_ajax_alynt_404_search', array( $this, 'handle_search' ) );
+		add_action( 'wp_ajax_nopriv_alynt_404_search', array( $this, 'handle_search' ) );
+	}
 
-    /**
-     * Handle AJAX search requests.
-     *
-     * @since 1.0.0
-     */
-    public function handle_search() {
-        // Verify nonce
-        if (!check_ajax_referer(ALYNT_404_PREFIX . 'search_nonce', 'nonce', false)) {
-            wp_send_json_error(['message' => 'Invalid security token.']);
-            return;
-        }
+	/**
+	 * Handle AJAX search requests.
+	 *
+	 * @since 1.0.0
+	 */
+	public function handle_search() {
+		// Verify nonce.
+		if ( ! check_ajax_referer( ALYNT_404_PREFIX . 'search_nonce', 'nonce', false ) ) {
+			wp_send_json_error( array( 'message' => __( 'Your search session expired. Refresh the page and try again.', 'alynt-404-sitemap' ) ) );
+			return;
+		}
 
-        // Sanitize and validate search input
-        $search_term = isset($_POST['search']) ? sanitize_text_field($_POST['search']) : '';
-        if (empty($search_term)) {
-            wp_send_json_error(['message' => 'Search term is required.']);
-            return;
-        }
+		if ( ! $this->check_rate_limit() ) {
+			wp_send_json_error( array( 'message' => __( 'Too many searches were sent in a short time. Please wait a moment and try again.', 'alynt-404-sitemap' ) ) );
+			return;
+		}
 
-        // Get enabled post types for search
-        $settings = get_option(ALYNT_404_PREFIX . '404_settings');
-        $post_types = !empty($settings['search_post_types']) ? $settings['search_post_types'] : ['post', 'page'];
+		// Sanitize and validate search input.
+		$search_term = isset( $_POST['search'] ) ? sanitize_text_field( wp_unslash( $_POST['search'] ) ) : '';
+		if ( empty( $search_term ) ) {
+			wp_send_json_error( array( 'message' => __( 'Enter a search term to see matching content.', 'alynt-404-sitemap' ) ) );
+			return;
+		}
 
-        // Perform search
-        $results = $this->perform_search($search_term, $post_types);
+		// Get enabled post types for search.
+		$settings   = get_option( ALYNT_404_PREFIX . '404_settings', array() );
+		$post_types = ! empty( $settings['search_post_types'] ) ? $settings['search_post_types'] : array( 'post', 'page' );
 
-        wp_send_json_success([
-            'results' => $results,
-            'count' => count($results)
-        ]);
-    }
+		// Perform search.
+		$results = $this->perform_search( $search_term, $post_types );
 
-    /**
-     * Handle settings save requests.
-     *
-     * @since 1.0.0
-     */
-    public function save_settings() {
-        // Verify nonce and capabilities
-        if (!check_ajax_referer(ALYNT_404_PREFIX . 'settings_nonce', 'nonce', false)) {
-            wp_send_json_error(['message' => 'Invalid security token.']);
-        }
+		wp_send_json_success(
+			array(
+				'results' => $results,
+				'count'   => count( $results ),
+			)
+		);
+	}
 
-        if (!current_user_can('manage_options')) {
-            wp_send_json_error(['message' => 'Insufficient permissions.']);
-        }
+	/**
+	 * Handle settings save requests.
+	 *
+	 * @since 1.0.0
+	 */
+	public function save_settings() {
+		// Verify nonce and capabilities.
+		if ( ! check_ajax_referer( ALYNT_404_PREFIX . 'settings_nonce', 'nonce', false ) ) {
+			wp_send_json_error( array( 'message' => 'Invalid security token.' ) );
+		}
 
-        // Validate and sanitize settings
-        $settings_type = isset($_POST['type']) ? sanitize_key($_POST['type']) : '';
-        $settings = isset($_POST['settings']) ? $this->sanitize_settings($_POST['settings']) : [];
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => 'Insufficient permissions.' ) );
+		}
 
-        if (empty($settings_type) || empty($settings)) {
-            wp_send_json_error(['message' => 'Invalid settings data.']);
-        }
+		// Validate and sanitize settings.
+		$settings_type = isset( $_POST['type'] ) ? sanitize_key( wp_unslash( $_POST['type'] ) ) : '';
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Nested settings are recursively sanitized in sanitize_settings().
+		$settings = isset( $_POST['settings'] ) ? $this->sanitize_settings( wp_unslash( $_POST['settings'] ) ) : array();
 
-        // Update settings based on type
-        switch ($settings_type) {
-            case 'colors':
-            $this->save_color_settings($settings);
-            break;
-            case '404':
-            $this->save_404_settings($settings);
-            break;
-            case 'sitemap':
-            $this->save_sitemap_settings($settings);
-            break;
-            default:
-            wp_send_json_error(['message' => 'Invalid settings type.']);
-        }
+		if ( empty( $settings_type ) || empty( $settings ) ) {
+			wp_send_json_error( array( 'message' => 'Invalid settings data.' ) );
+		}
 
-        wp_send_json_success(['message' => 'Settings saved successfully.']);
-    }
+		// Update settings based on type.
+		switch ( $settings_type ) {
+			case 'colors':
+				$this->save_color_settings( $settings );
+				break;
+			case '404':
+				$this->save_404_settings( $settings );
+				break;
+			case 'sitemap':
+				$this->save_sitemap_settings( $settings );
+				break;
+			default:
+				wp_send_json_error( array( 'message' => 'Invalid settings type.' ) );
+		}
 
-    /**
-     * Perform search query.
-     *
-     * @since 1.0.0
-     * @param string $search_term The search term.
-     * @param array  $post_types Array of post types to search.
-     * @return array Search results.
-     */
-    private function perform_search($search_term, $post_types) {
-        $args = array(
-            'post_type' => $post_types,
-            'post_status' => 'publish',
-            's' => $search_term,
-            'orderby' => 'relevance',
-            'posts_per_page' => -1
-        );
+		wp_send_json_success( array( 'message' => 'Settings saved successfully.' ) );
+	}
 
-        $query = new WP_Query($args);
-        $results = [];
+	/**
+	 * Perform search query.
+	 *
+	 * @since 1.0.0
+	 * @param string $search_term The search term.
+	 * @param array  $post_types Array of post types to search.
+	 * @return array Search results.
+	 */
+	private function perform_search( $search_term, $post_types ) {
+		$result_limit = $this->get_search_result_limit();
+		$args = array(
+			'post_type'              => $post_types,
+			'post_status'            => 'publish',
+			's'                      => $search_term,
+			'orderby'                => 'relevance',
+			'posts_per_page'         => $result_limit,
+			'no_found_rows'          => true,
+			'ignore_sticky_posts'    => true,
+			'update_post_meta_cache' => false,
+			'update_post_term_cache' => false,
+		);
 
-        if ($query->have_posts()) {
-            while ($query->have_posts()) {
-                $query->the_post();
-                $results[] = [
-                    'title' => get_the_title(),
-                    'url' => get_permalink(),
-                    'type' => get_post_type_object(get_post_type())->labels->singular_name
-                ];
-            }
-        }
+		$query            = new WP_Query( $args );
+		$results          = array();
+		$post_type_labels = array();
 
-        wp_reset_postdata();
-        return $results;
-    }
+		if ( $query->have_posts() ) {
+			while ( $query->have_posts() ) {
+				$query->the_post();
+				$post_type = get_post_type();
 
-    /**
-     * Check rate limiting.
-     *
-     * @since 1.0.0
-     * @return boolean True if request is allowed, false if rate limited.
-     */
-    private function check_rate_limit() {
-        $ip = $this->get_client_ip();
-        $transient_key = ALYNT_404_PREFIX . 'rate_limit_' . md5($ip);
-        $requests = get_transient($transient_key);
+				if ( ! isset( $post_type_labels[ $post_type ] ) ) {
+					$post_type_object             = get_post_type_object( $post_type );
+					$post_type_labels[ $post_type ] = $post_type_object ? $post_type_object->labels->singular_name : ucfirst( $post_type );
+				}
 
-        if (false === $requests) {
-            set_transient($transient_key, 1, $this->rate_limit_duration);
-            return true;
-        }
+				$results[] = array(
+					'title' => get_the_title(),
+					'url'   => get_permalink(),
+					'type'  => $post_type_labels[ $post_type ],
+				);
+			}
+		}
 
-        if ($requests >= $this->rate_limit_requests) {
-            return false;
-        }
+		wp_reset_postdata();
+		return $results;
+	}
 
-        set_transient($transient_key, $requests + 1, $this->rate_limit_duration);
-        return true;
-    }
+	/**
+	 * Check rate limiting.
+	 *
+	 * @since 1.0.0
+	 * @return boolean True if request is allowed, false if rate limited.
+	 */
+	private function check_rate_limit() {
+		$ip            = $this->get_client_ip();
+		$transient_key = ALYNT_404_PREFIX . 'rate_limit_' . md5( $ip );
+		$requests      = get_transient( $transient_key );
 
-    /**
-     * Get client IP address.
-     *
-     * @since 1.0.0
-     * @return string IP address.
-     */
-    private function get_client_ip() {
-        $ip = '';
-        
-        // Check for CloudFlare IP
-        if (isset($_SERVER['HTTP_CF_CONNECTING_IP'])) {
-            $ip = $_SERVER['HTTP_CF_CONNECTING_IP'];
-        }
-        // Check for proxy IP
-        elseif (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-            $ip = trim(current(explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])));
-        }
-        // Get remote address
-        elseif (isset($_SERVER['REMOTE_ADDR'])) {
-            $ip = $_SERVER['REMOTE_ADDR'];
-        }
+		if ( false === $requests ) {
+			set_transient( $transient_key, 1, $this->rate_limit_duration );
+			return true;
+		}
 
-        return filter_var($ip, FILTER_VALIDATE_IP) ? $ip : '';
-    }
+		if ( $requests >= $this->rate_limit_requests ) {
+			return false;
+		}
 
-    /**
-     * Sanitize settings array.
-     *
-     * @since 1.0.0
-     * @param array $settings Raw settings array.
-     * @return array Sanitized settings array.
-     */
-    private function sanitize_settings($settings) {
-        if (!is_array($settings)) {
-            return [];
-        }
+		set_transient( $transient_key, $requests + 1, $this->rate_limit_duration );
+		return true;
+	}
 
-        $sanitized = [];
-        foreach ($settings as $key => $value) {
-            $key = sanitize_key($key);
-            
-            if (is_array($value)) {
-                $sanitized[$key] = $this->sanitize_settings($value);
-            } else {
-                switch ($key) {
-                    case 'custom_css':
-                    $sanitized[$key] = wp_strip_all_tags($value);
-                    break;
-                    case 'meta_description':
-                    $sanitized[$key] = sanitize_text_field($value);
-                    break;
-                    case 'excluded_ids':
-                    $sanitized[$key] = sanitize_text_field($value);
-                    break;
-                    default:
-                    $sanitized[$key] = sanitize_text_field($value);
-                }
-            }
-        }
+	/**
+	 * Get client IP address.
+	 *
+	 * @since 1.0.0
+	 * @return string IP address.
+	 */
+	private function get_client_ip() {
+		$ip = '';
 
-        return $sanitized;
-    }
+		// Prefer forwarded client IP headers before falling back to REMOTE_ADDR.
+		if ( isset( $_SERVER['HTTP_CF_CONNECTING_IP'] ) ) {
+			$ip = sanitize_text_field( wp_unslash( $_SERVER['HTTP_CF_CONNECTING_IP'] ) );
+		} elseif ( isset( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ) {
+			$ip = trim( current( explode( ',', sanitize_text_field( wp_unslash( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ) ) ) );
+		} elseif ( isset( $_SERVER['REMOTE_ADDR'] ) ) {
+			$ip = sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) );
+		}
 
-    /**
-     * Save color settings.
-     *
-     * @since 1.0.0
-     * @param array $settings Color settings array.
-     */
-    private function save_color_settings($settings) {
-        // Validate hex colors
-        foreach ($settings as $key => $color) {
-            if (!preg_match('/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{8})$/', $color)) {
-                wp_send_json_error(['message' => 'Invalid color format for ' . $key]);
-            }
-        }
+		return filter_var( $ip, FILTER_VALIDATE_IP ) ? $ip : '';
+	}
 
-        update_option(ALYNT_404_PREFIX . 'colors', $settings);
-    }
+	/**
+	 * Sanitize settings array.
+	 *
+	 * @since 1.0.0
+	 * @param array $settings Raw settings array.
+	 * @return array Sanitized settings array.
+	 */
+	private function sanitize_settings( $settings ) {
+		if ( ! is_array( $settings ) ) {
+			return array();
+		}
 
-    /**
-     * Save 404 page settings.
-     *
-     * @since 1.0.0
-     * @param array $settings 404 page settings array.
-     */
-    private function save_404_settings($settings) {
-        // Validate post types
-        if (!empty($settings['search_post_types'])) {
-            $settings['search_post_types'] = array_intersect(
-                $settings['search_post_types'],
-                array_keys(get_post_types(['public' => true]))
-            );
-        }
+		$sanitized = array();
+		foreach ( $settings as $key => $value ) {
+			$key = sanitize_key( $key );
 
-        update_option(ALYNT_404_PREFIX . '404_settings', $settings);
-    }
+			if ( is_array( $value ) ) {
+				$sanitized[ $key ] = $this->sanitize_settings( $value );
+			} else {
+				switch ( $key ) {
+					case 'custom_css':
+						$sanitized[ $key ] = wp_strip_all_tags( $value );
+						break;
+					case 'meta_description':
+						$sanitized[ $key ] = sanitize_text_field( $value );
+						break;
+					case 'excluded_ids':
+						$sanitized[ $key ] = sanitize_text_field( $value );
+						break;
+					default:
+						$sanitized[ $key ] = sanitize_text_field( $value );
+				}
+			}
+		}
 
-    /**
-     * Save sitemap settings.
-     *
-     * @since 1.0.0
-     * @param array $settings Sitemap settings array.
-     */
-    private function save_sitemap_settings($settings) {
-        // Validate post types
-        if (!empty($settings['post_types'])) {
-            $settings['post_types'] = array_intersect(
-                $settings['post_types'],
-                array_keys(get_post_types(['public' => true]))
-            );
-        }
+		return $sanitized;
+	}
 
-        // Validate excluded IDs
-        if (!empty($settings['excluded_ids'])) {
-            $ids = array_map('trim', explode(',', $settings['excluded_ids']));
-            $valid_ids = [];
-            foreach ($ids as $id) {
-                if (get_post($id)) {
-                    $valid_ids[] = $id;
-                }
-            }
-            $settings['excluded_ids'] = implode(',', $valid_ids);
-        }
+	/**
+	 * Save color settings.
+	 *
+	 * @since 1.0.0
+	 * @param array $settings Color settings array.
+	 */
+	private function save_color_settings( $settings ) {
+		// Validate hex colors.
+		foreach ( $settings as $key => $color ) {
+			if ( ! preg_match( '/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{8})$/', $color ) ) {
+				wp_send_json_error( array( 'message' => 'Invalid color format for ' . $key ) );
+			}
+		}
 
-        update_option(ALYNT_404_PREFIX . 'sitemap_settings', $settings);
-    }
+		update_option( ALYNT_404_PREFIX . 'colors', $settings );
+	}
+
+	/**
+	 * Save 404 page settings.
+	 *
+	 * @since 1.0.0
+	 * @param array $settings 404 page settings array.
+	 */
+	private function save_404_settings( $settings ) {
+		// Validate post types.
+		if ( ! empty( $settings['search_post_types'] ) ) {
+			$settings['search_post_types'] = array_intersect(
+				$settings['search_post_types'],
+				array_keys( get_post_types( array( 'public' => true ) ) )
+			);
+		}
+
+		update_option( ALYNT_404_PREFIX . '404_settings', $settings );
+	}
+
+	/**
+	 * Save sitemap settings.
+	 *
+	 * @since 1.0.0
+	 * @param array $settings Sitemap settings array.
+	 */
+	private function save_sitemap_settings( $settings ) {
+		// Validate post types.
+		if ( ! empty( $settings['post_types'] ) ) {
+			$settings['post_types'] = array_intersect(
+				$settings['post_types'],
+				array_keys( get_post_types( array( 'public' => true ) ) )
+			);
+		}
+
+		// Validate excluded IDs.
+		if ( ! empty( $settings['excluded_ids'] ) ) {
+			$ids                    = array_map( 'trim', explode( ',', $settings['excluded_ids'] ) );
+			$settings['excluded_ids'] = implode( ',', $this->get_valid_post_ids( $ids ) );
+		}
+
+		update_option( ALYNT_404_PREFIX . 'sitemap_settings', $settings );
+	}
+
+	/**
+	 * Get the maximum number of search results to return.
+	 *
+	 * @since 1.0.3
+	 * @return int
+	 */
+	private function get_search_result_limit() {
+		return max( 1, (int) apply_filters( ALYNT_404_PREFIX . 'search_result_limit', 10 ) );
+	}
+
+	/**
+	 * Validate post IDs with a single batched query.
+	 *
+	 * @since 1.0.3
+	 * @param array $ids Raw post IDs.
+	 * @return array
+	 */
+	private function get_valid_post_ids( $ids ) {
+		$post_ids = array_values( array_unique( array_filter( array_map( 'absint', $ids ) ) ) );
+
+		if ( empty( $post_ids ) ) {
+			return array();
+		}
+
+		return get_posts(
+			array(
+				'post_type'              => 'any',
+				'post_status'            => 'any',
+				'post__in'               => $post_ids,
+				'posts_per_page'         => count( $post_ids ),
+				'orderby'                => 'post__in',
+				'fields'                 => 'ids',
+				'no_found_rows'          => true,
+				'ignore_sticky_posts'    => true,
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
+			)
+		);
+	}
 }
-

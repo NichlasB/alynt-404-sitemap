@@ -20,17 +20,17 @@
 // Prevent direct access.
 defined( 'ABSPATH' ) || exit;
 
-// Plugin version
-define('ALYNT_404_VERSION', '1.0.3');
+// Plugin version.
+define( 'ALYNT_404_VERSION', '1.0.3' );
 
-// Plugin directory path
-define('ALYNT_404_PATH', plugin_dir_path(__FILE__));
+// Plugin directory path.
+define( 'ALYNT_404_PATH', plugin_dir_path( __FILE__ ) );
 
-// Plugin directory URL
-define('ALYNT_404_URL', plugin_dir_url(__FILE__));
+// Plugin directory URL.
+define( 'ALYNT_404_URL', plugin_dir_url( __FILE__ ) );
 
-// Plugin prefix
-define('ALYNT_404_PREFIX', 'alynt_404_');
+// Plugin prefix.
+define( 'ALYNT_404_PREFIX', 'alynt_404_' );
 
 /**
  * Load plugin text domain for translations.
@@ -40,32 +40,63 @@ define('ALYNT_404_PREFIX', 'alynt_404_');
  * @return void
  */
 function alynt_404_load_textdomain() {
-    load_plugin_textdomain(
-        'alynt-404-sitemap',
-        false,
-        dirname( plugin_basename( __FILE__ ) ) . '/languages'
-    );
+	load_plugin_textdomain(
+		'alynt-404-sitemap',
+		false,
+		dirname( plugin_basename( __FILE__ ) ) . '/languages/'
+	);
 }
-add_action( 'init', 'alynt_404_load_textdomain' );
+add_action( 'plugins_loaded', 'alynt_404_load_textdomain' );
 
 /**
  * The code that runs during plugin activation.
  */
 function alynt_404_activate() {
-    require_once ALYNT_404_PATH . 'includes/class-activator.php';
-    Alynt_404_Activator::activate();
+	require_once ALYNT_404_PATH . 'includes/class-activator.php';
+	Alynt_404_Activator::activate();
 }
 
 /**
  * The code that runs during plugin deactivation.
  */
 function alynt_404_deactivate() {
-    require_once ALYNT_404_PATH . 'includes/class-deactivator.php';
-    Alynt_404_Deactivator::deactivate();
+	require_once ALYNT_404_PATH . 'includes/class-deactivator.php';
+	Alynt_404_Deactivator::deactivate();
 }
 
-register_activation_hook(__FILE__, 'alynt_404_activate');
-register_deactivation_hook(__FILE__, 'alynt_404_deactivate');
+register_activation_hook( __FILE__, 'alynt_404_activate' );
+register_deactivation_hook( __FILE__, 'alynt_404_deactivate' );
+
+/**
+ * Check runtime requirements for plugin bootstrapping.
+ *
+ * @since 1.0.3
+ * @return bool True when minimum WP/PHP versions are met.
+ */
+function alynt_404_requirements_met() {
+	global $wp_version;
+
+	return version_compare( PHP_VERSION, '7.4', '>=' ) && version_compare( $wp_version, '5.8', '>=' );
+}
+
+/**
+ * Show requirements notice when runtime requirements are not met.
+ *
+ * @since 1.0.3
+ * @return void
+ */
+function alynt_404_requirements_notice() {
+	?>
+	<div class="notice notice-error">
+		<p><?php esc_html_e( 'Alynt 404 & Sitemap requires WordPress 5.8+ and PHP 7.4+.', 'alynt-404-sitemap' ); ?></p>
+	</div>
+	<?php
+}
+
+if ( ! alynt_404_requirements_met() ) {
+	add_action( 'admin_notices', 'alynt_404_requirements_notice' );
+	return;
+}
 
 /**
  * The core plugin class that is used to define internationalization,
@@ -79,8 +110,8 @@ require_once ALYNT_404_PATH . 'includes/class-alynt-404-sitemap.php';
  * @since 1.0.3
  */
 function alynt_404_run() {
-    $plugin = new Alynt_404_Sitemap();
-    $plugin->run();
+	$plugin = new Alynt_404_Sitemap();
+	$plugin->run();
 }
 alynt_404_run();
 

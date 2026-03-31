@@ -9,83 +9,89 @@
 // Prevent direct access.
 defined( 'ABSPATH' ) || exit;
 
+/**
+ * Handles plugin deactivation routines.
+ *
+ * @since 1.0.0
+ */
 class Alynt_404_Deactivator {
 
-    /**
-     * Plugin deactivation tasks.
-     *
-     * @since 1.0.0
-     */
-    public static function deactivate() {
-        self::clear_temporary_data();
-        self::remove_rewrite_rules();
-        self::clear_scheduled_tasks();
-    }
+	/**
+	 * Plugin deactivation tasks.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function deactivate() {
+		self::clear_temporary_data();
+		self::remove_rewrite_rules();
+		self::clear_scheduled_tasks();
+	}
 
-    /**
-     * Clear any temporary data and transients.
-     *
-     * @since 1.0.0
-     */
-    private static function clear_temporary_data() {
-        global $wpdb;
+	/**
+	 * Clear any temporary data and transients.
+	 *
+	 * @since 1.0.0
+	 */
+	private static function clear_temporary_data() {
+		global $wpdb;
+		$prefix_like = $wpdb->esc_like( ALYNT_404_PREFIX );
 
-        // Delete all transients with our prefix
-        $wpdb->query(
-            $wpdb->prepare(
-                "DELETE FROM {$wpdb->options} 
+		// Delete all transients with our prefix.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Deactivation cleanup requires direct option-table transient deletion by prefix.
+		$wpdb->query(
+			$wpdb->prepare(
+				"DELETE FROM {$wpdb->options} 
                 WHERE option_name LIKE %s 
                 OR option_name LIKE %s",
-                '_transient_' . ALYNT_404_PREFIX . '%',
-                '_transient_timeout_' . ALYNT_404_PREFIX . '%'
-            )
-        );
+				'_transient_' . $prefix_like . '%',
+				'_transient_timeout_' . $prefix_like . '%'
+			)
+		);
 
-        // Clear any cached CSS files
-        $upload_dir = wp_upload_dir();
-        $css_dir = trailingslashit($upload_dir['basedir']) . 'alynt-404-sitemap';
-        
-        if (file_exists($css_dir)) {
-            $css_files = glob($css_dir . '/*.css');
-            if (is_array($css_files)) {
-                foreach ($css_files as $file) {
-                    if (is_file($file) && strpos($file, 'cache') !== false) {
-                        @unlink($file);
-                    }
-                }
-            }
-        }
-    }
+		// Clear any cached CSS files.
+		$upload_dir = wp_upload_dir();
+		$css_dir    = trailingslashit( $upload_dir['basedir'] ) . 'alynt-404-sitemap';
 
-    /**
-     * Remove plugin rewrite rules.
-     *
-     * @since 1.0.0
-     */
-    private static function remove_rewrite_rules() {
-        // Remove the sitemap rewrite rule by flushing
-        delete_option('rewrite_rules');
-        flush_rewrite_rules();
-    }
+		if ( file_exists( $css_dir ) ) {
+			$css_files = glob( $css_dir . '/*.css' );
+			if ( is_array( $css_files ) ) {
+				foreach ( $css_files as $file ) {
+					if ( is_file( $file ) && strpos( $file, 'cache' ) !== false ) {
+						wp_delete_file( $file );
+					}
+				}
+			}
+		}
+	}
 
-    /**
-     * Clear any scheduled tasks/crons.
-     *
-     * @since 1.0.0
-     */
-    private static function clear_scheduled_tasks() {
-        // Get all scheduled tasks with our prefix
-        $cron_tasks = _get_cron_array();
-        
-        if (!empty($cron_tasks)) {
-            foreach ($cron_tasks as $timestamp => $cron) {
-                foreach ($cron as $hook => $task) {
-                    if (strpos($hook, ALYNT_404_PREFIX) !== false) {
-                        wp_unschedule_event($timestamp, $hook);
-                    }
-                }
-            }
-        }
-    }
+	/**
+	 * Remove plugin rewrite rules.
+	 *
+	 * @since 1.0.0
+	 */
+	private static function remove_rewrite_rules() {
+		// Remove the sitemap rewrite rule by flushing.
+		delete_option( 'rewrite_rules' );
+		flush_rewrite_rules();
+	}
+
+	/**
+	 * Clear any scheduled tasks/crons.
+	 *
+	 * @since 1.0.0
+	 */
+	private static function clear_scheduled_tasks() {
+		// Get all scheduled tasks with our prefix.
+		$cron_tasks = _get_cron_array();
+
+		if ( ! empty( $cron_tasks ) ) {
+			foreach ( $cron_tasks as $timestamp => $cron ) {
+				foreach ( $cron as $hook => $task ) {
+					if ( strpos( $hook, ALYNT_404_PREFIX ) !== false ) {
+						wp_unschedule_event( $timestamp, $hook );
+					}
+				}
+			}
+		}
+	}
 }
-

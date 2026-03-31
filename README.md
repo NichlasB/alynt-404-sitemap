@@ -91,6 +91,22 @@ The sitemap becomes available at `/{url_slug}` using the slug saved in the Sitem
 - Settings reference: [docs/SETTINGS.md](docs/SETTINGS.md)
 - Hooks reference: [docs/HOOKS.md](docs/HOOKS.md)
 
+## Development
+
+- Editable source assets live in `assets/src/`.
+- Runtime assets are served from `assets/dist/`.
+- Run `npm install` once, then `npm run build` before testing or packaging the plugin.
+- Use `npm run dev` while working on assets if your environment supports watch mode.
+- PHP tooling is configured through Composer in `composer.json`.
+
+## Release Checklist
+
+1. Run `composer install`.
+2. Run `npm install`.
+3. Run `npm run build`.
+4. Verify the generated files in `assets/dist/` are up to date.
+5. Create the release package or publish the GitHub release.
+
 ## Examples
 
 - Use the 404 tab to add quick links back to key landing pages when visitors hit a missing URL.

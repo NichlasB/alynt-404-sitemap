@@ -5,40 +5,38 @@
  * @package Alynt_404_Sitemap
  */
 
-
 // Prevent direct access.
 defined( 'ABSPATH' ) || exit;
 
 get_header();
 
-$settings = get_option(ALYNT_404_PREFIX . '404_settings', array());
+$settings = get_option( ALYNT_404_PREFIX . '404_settings', array() );
 ?>
 
 <main id="primary" class="alynt-404-page" role="main">
-    <h1>
-        <?php echo esc_html($settings['heading'] ?? "Oops! That page can't be found."); ?>
-    </h1>
+	<h1>
+		<?php echo esc_html( $settings['heading'] ?? __( "Oops! That page can't be found.", 'alynt-404-sitemap' ) ); ?>
+	</h1>
 
-    <p>
-        <?php echo esc_html($settings['message'] ?? "Looks like this page took a wrong turn. Let's get you back to where you need to be."); ?>
-    </p>
+	<p>
+		<?php echo esc_html( $settings['message'] ?? __( "Looks like this page took a wrong turn. Let's get you back to where you need to be.", 'alynt-404-sitemap' ) ); ?>
+	</p>
+	<?php
+	// Load search form partial.
+	require ALYNT_404_PATH . 'templates/partials/search-results.php';
 
-    <?php 
-    // Load search form partial
-    require ALYNT_404_PATH . 'templates/partials/search-results.php';
-    
-    // Load button links partial if buttons exist
-    if (!empty($settings['button_links'])) {
-        require ALYNT_404_PATH . 'templates/partials/button-links.php';
-    }
-    ?>
+	// Load button links partial if buttons exist.
+	if ( ! empty( $settings['button_links'] ) ) {
+		require ALYNT_404_PATH . 'templates/partials/button-links.php';
+	}
+	?>
 
-    <div class="alynt-404-home-link">
-        <a href="<?php echo esc_url(home_url('/')); ?>" 
-           aria-label="<?php esc_attr_e('Return to homepage', 'alynt-404-sitemap'); ?>">
-            <?php esc_html_e('Return to Homepage', 'alynt-404-sitemap'); ?>
-        </a>
-    </div>
+	<div class="alynt-404-home-link">
+		<a href="<?php echo esc_url( home_url( '/' ) ); ?>" 
+			aria-label="<?php esc_attr_e( 'Return to homepage', 'alynt-404-sitemap' ); ?>">
+			<?php esc_html_e( 'Return to Homepage', 'alynt-404-sitemap' ); ?>
+		</a>
+	</div>
 </main>
 
 <?php

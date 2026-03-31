@@ -10,10 +10,10 @@
     "deploy": "bash deploy.sh",
     "deploy:watch": "nodemon --watch . --ext php,js,css,html --ignore node_modules/ --ignore .git/ --ignore scripts/ --delay 2 --exec \"bash deploy.sh\"",
     "dev:all": "concurrently --names \"build,deploy\" --prefix-colors \"cyan,magenta\" \"npm run dev\" \"npm run deploy:watch\"",
-    "lint": "vendor/bin/phpcs --standard=WordPress .",
-    "lint:fix": "vendor/bin/phpcbf --standard=WordPress .",
-    "test": "vendor/bin/phpunit",
-    "test:coverage": "vendor/bin/phpunit --coverage-html=coverage/",
+    "lint": "php vendor/bin/phpcs --standard=.phpcs.xml .",
+    "lint:fix": "php vendor/bin/phpcbf --standard=.phpcs.xml .",
+    "test": "php vendor/bin/phpunit",
+    "test:coverage": "php vendor/bin/phpunit --coverage-html=coverage/",
     "pot": "wp i18n make-pot . languages/alynt-404-sitemap.pot"
   },
   "devDependencies": {

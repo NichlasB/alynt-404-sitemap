@@ -26,11 +26,19 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Install Composer dependencies
+        run: |
+          if [ -f "composer.json" ]; then
+            composer install --no-interaction --prefer-dist
+          else
+            echo "No composer.json found, skipping Composer step"
+          fi
+
       - name: Check for package.json and install npm dependencies
         run: |
           if [ -f "package.json" ]; then
             npm install
-            npm run build || echo "No build script, skipping"
+            npm run build
           else
             echo "No package.json found, skipping npm steps"
           fi
