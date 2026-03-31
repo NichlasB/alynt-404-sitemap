@@ -145,7 +145,6 @@ class Alynt_404_Admin {
 	private function get_localized_admin_vars() {
 		return array(
 			'ajaxurl'  => admin_url( 'admin-ajax.php' ),
-			'nonce'    => wp_create_nonce( ALYNT_404_PREFIX . 'settings_nonce' ),
 			'messages' => array(
 				'saveSuccess'              => __( 'Settings saved successfully.', 'alynt-404-sitemap' ),
 				'saveError'                => __( 'Error saving settings.', 'alynt-404-sitemap' ),

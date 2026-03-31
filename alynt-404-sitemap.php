@@ -52,7 +52,7 @@ add_action( 'plugins_loaded', 'alynt_404_load_textdomain' );
  * The code that runs during plugin activation.
  */
 function alynt_404_activate() {
-	require_once ALYNT_404_PATH . 'includes/class-activator.php';
+	require_once ALYNT_404_PATH . 'includes/class-alynt-404-activator.php';
 	Alynt_404_Activator::activate();
 }
 
@@ -60,7 +60,7 @@ function alynt_404_activate() {
  * The code that runs during plugin deactivation.
  */
 function alynt_404_deactivate() {
-	require_once ALYNT_404_PATH . 'includes/class-deactivator.php';
+	require_once ALYNT_404_PATH . 'includes/class-alynt-404-deactivator.php';
 	Alynt_404_Deactivator::deactivate();
 }
 
@@ -76,7 +76,9 @@ register_deactivation_hook( __FILE__, 'alynt_404_deactivate' );
 function alynt_404_requirements_met() {
 	global $wp_version;
 
-	return version_compare( PHP_VERSION, '7.4', '>=' ) && version_compare( $wp_version, '5.8', '>=' );
+	$current_wp_version = is_string( $wp_version ) ? $wp_version : '';
+
+	return version_compare( PHP_VERSION, '7.4', '>=' ) && version_compare( $current_wp_version, '5.8', '>=' );
 }
 
 /**

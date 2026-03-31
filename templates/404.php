@@ -11,6 +11,10 @@ defined( 'ABSPATH' ) || exit;
 get_header();
 
 $settings = get_option( ALYNT_404_PREFIX . '404_settings', array() );
+$settings = wp_parse_args(
+	is_array( $settings ) ? $settings : array(),
+	Alynt_404_Settings_Defaults::get_404_defaults()
+);
 ?>
 
 <main id="primary" class="alynt-404-page" role="main">

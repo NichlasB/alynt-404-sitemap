@@ -56,7 +56,7 @@ class Alynt_404_Deactivator {
 			$css_files = glob( $css_dir . '/*.css' );
 			if ( is_array( $css_files ) ) {
 				foreach ( $css_files as $file ) {
-					if ( is_file( $file ) && strpos( $file, 'cache' ) !== false ) {
+					if ( is_file( $file ) ) {
 						wp_delete_file( $file );
 					}
 				}

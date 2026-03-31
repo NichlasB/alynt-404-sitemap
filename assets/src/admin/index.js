@@ -236,29 +236,69 @@
         });
 
         const preview = $('.alynt-404-color-preview');
-        preview.html(`
-        <div class="preview-item">
-            <h3 style="color: ${colors.headings || 'inherit'} !important; font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen-Sans,Ubuntu,Cantarell,'Helvetica Neue',sans-serif !important; margin: 0 !important;">${messages.previewHeadingExample || ''}</h3>
-        </div>
-        <div class="preview-item" style="color: ${colors.paragraph || 'inherit'}">
-            <p>${messages.previewParagraphExample || ''}</p>
-        </div>
-        <div class="preview-item">
-            <a href="#" style="color: ${colors.links || 'inherit'}">${messages.previewLinkExample || ''}</a>
-        </div>
-        <div class="preview-item">
-            <button style="background-color: ${colors.buttons || 'inherit'}; color: ${colors.button_text || 'inherit'}">
-                ${messages.previewButtonExample || ''}
-            </button>
-        </div>
-        <div class="preview-item">
-            <input type="text"
-                   placeholder="${messages.previewSearchPlaceholder || ''}"
-                   style="color: ${colors.search_text || 'inherit'};
-                          background-color: ${colors.search_background || 'inherit'};
-                          border-color: ${colors.search_border || 'inherit'}">
-        </div>
-        `);
+        preview.empty();
+
+        const safeColor = function(value) {
+            return /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{8})$/.test(value || '') ? value : '';
+        };
+        const appendPreviewItem = function($content) {
+            preview.append($('<div />', { class: 'preview-item' }).append($content));
+        };
+
+        const $heading = $('<h3 />', {
+            text: messages.previewHeadingExample || ''
+        }).css({
+            'font-family': "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen-Sans,Ubuntu,Cantarell,'Helvetica Neue',sans-serif",
+            margin: 0
+        });
+        if (safeColor(colors.headings)) {
+            $heading.css('color', safeColor(colors.headings));
+        }
+        appendPreviewItem($heading);
+
+        const $paragraph = $('<p />', {
+            text: messages.previewParagraphExample || ''
+        });
+        if (safeColor(colors.paragraph)) {
+            $paragraph.css('color', safeColor(colors.paragraph));
+        }
+        appendPreviewItem($paragraph);
+
+        const $link = $('<a />', {
+            href: '#',
+            text: messages.previewLinkExample || ''
+        });
+        if (safeColor(colors.links)) {
+            $link.css('color', safeColor(colors.links));
+        }
+        appendPreviewItem($link);
+
+        const $button = $('<button />', {
+            type: 'button',
+            text: messages.previewButtonExample || ''
+        });
+        if (safeColor(colors.buttons)) {
+            $button.css('background-color', safeColor(colors.buttons));
+        }
+        if (safeColor(colors.button_text)) {
+            $button.css('color', safeColor(colors.button_text));
+        }
+        appendPreviewItem($button);
+
+        const $input = $('<input />', {
+            type: 'text',
+            placeholder: messages.previewSearchPlaceholder || ''
+        });
+        if (safeColor(colors.search_text)) {
+            $input.css('color', safeColor(colors.search_text));
+        }
+        if (safeColor(colors.search_background)) {
+            $input.css('background-color', safeColor(colors.search_background));
+        }
+        if (safeColor(colors.search_border)) {
+            $input.css('border-color', safeColor(colors.search_border));
+        }
+        appendPreviewItem($input);
     }
 
     admin.initColorPickers = initColorPickers;

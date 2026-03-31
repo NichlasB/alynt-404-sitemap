@@ -103,7 +103,16 @@ class Alynt_404_Admin_Page {
 			return;
 		}
 
-		check_admin_referer( 'reset_settings_action' );
+		$nonce = isset( $_POST['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ) ) : '';
+		if ( ! wp_verify_nonce( $nonce, 'reset_settings_action' ) ) {
+			add_settings_error(
+				'alynt_404_messages',
+				'settings_reset_expired',
+				__( 'Your session expired before the reset could be completed. Refresh the page and try again.', 'alynt-404-sitemap' ),
+				'error'
+			);
+			return;
+		}
 
 		if ( ! Alynt_404_Settings_Defaults::reset_tab( $this->active_tab ) ) {
 			add_settings_error(

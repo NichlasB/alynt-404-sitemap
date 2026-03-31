@@ -95,8 +95,8 @@ class Alynt_404_Public {
 	 * @return   void Enqueues public styles when the plugin output is in use.
 	 */
 	public function enqueue_styles() {
-		$is_404        = is_404();
-		$is_sitemap    = (bool) get_query_var( ALYNT_404_PREFIX . 'sitemap' );
+		$is_404         = is_404();
+		$is_sitemap     = (bool) get_query_var( ALYNT_404_PREFIX . 'sitemap' );
 		$is_plugin_view = $is_404 || $is_sitemap;
 
 		if ( ! $is_plugin_view ) {
@@ -123,7 +123,7 @@ class Alynt_404_Public {
 				$this->plugin_name . '-custom-colors',
 				$custom_css_url,
 				array(),
-				null
+				$this->version
 			);
 		}
 	}
@@ -195,8 +195,17 @@ class Alynt_404_Public {
 	 * @return   void Registers the sitemap rewrite rule.
 	 */
 	public function add_rewrite_rules() {
-		$settings = get_option( ALYNT_404_PREFIX . 'sitemap_settings', array() );
-		$slug     = $settings['url_slug'] ?? 'sitemap';
+		$defaults = Alynt_404_Settings_Defaults::get_sitemap_defaults();
+		$settings = $this->get_merged_settings( 'sitemap_settings', $defaults );
+		$slug     = sanitize_title( (string) ( $settings['url_slug'] ?? $defaults['url_slug'] ) );
+
+		if ( '' === $slug ) {
+			$slug = sanitize_title( (string) $defaults['url_slug'] );
+		}
+
+		if ( '' === $slug ) {
+			$slug = 'sitemap';
+		}
 
 		add_rewrite_rule(
 			'^' . $slug . '/?$',
@@ -213,21 +222,13 @@ class Alynt_404_Public {
 	 */
 	public function add_meta_tags() {
 		if ( is_404() ) {
-			$settings = get_option( ALYNT_404_PREFIX . '404_settings', array() );
-			if ( ! empty( $settings['meta_description'] ) ) {
-				echo '<meta name="description" content="' . esc_attr( $settings['meta_description'] ) . '" />' . "\n";
-			}
-			if ( ! empty( $settings['custom_css'] ) ) {
-				echo '<style type="text/css">' . esc_html( wp_strip_all_tags( $settings['custom_css'] ) ) . '</style>' . "\n";
-			}
+			$this->render_meta_and_css_tags(
+				$this->get_merged_settings( '404_settings', Alynt_404_Settings_Defaults::get_404_defaults() )
+			);
 		} elseif ( get_query_var( ALYNT_404_PREFIX . 'sitemap' ) ) {
-			$settings = get_option( ALYNT_404_PREFIX . 'sitemap_settings', array() );
-			if ( ! empty( $settings['meta_description'] ) ) {
-				echo '<meta name="description" content="' . esc_attr( $settings['meta_description'] ) . '" />' . "\n";
-			}
-			if ( ! empty( $settings['custom_css'] ) ) {
-				echo '<style type="text/css">' . esc_html( wp_strip_all_tags( $settings['custom_css'] ) ) . '</style>' . "\n";
-			}
+			$this->render_meta_and_css_tags(
+				$this->get_merged_settings( 'sitemap_settings', Alynt_404_Settings_Defaults::get_sitemap_defaults() )
+			);
 		}
 	}
 
@@ -238,7 +239,7 @@ class Alynt_404_Public {
 	 * @return   string    Responsive layout classes for the sitemap template.
 	 */
 	public function get_responsive_classes() {
-		$settings = get_option( ALYNT_404_PREFIX . 'sitemap_settings', array() );
+		$settings = $this->get_merged_settings( 'sitemap_settings', Alynt_404_Settings_Defaults::get_sitemap_defaults() );
 		$classes  = array(
 			'desktop-cols-' . ( $settings['columns_desktop'] ?? 4 ),
 			'tablet-cols-' . ( $settings['columns_tablet'] ?? 2 ),
@@ -282,9 +283,40 @@ class Alynt_404_Public {
 	 */
 	public function filter_document_title( $title ) {
 		if ( get_query_var( ALYNT_404_PREFIX . 'sitemap' ) ) {
-			$settings       = get_option( ALYNT_404_PREFIX . 'sitemap_settings', array() );
+			$settings       = $this->get_merged_settings( 'sitemap_settings', Alynt_404_Settings_Defaults::get_sitemap_defaults() );
 			$title['title'] = ! empty( $settings['heading'] ) ? $settings['heading'] : __( 'Sitemap', 'alynt-404-sitemap' );
 		}
 		return $title;
+	}
+
+	/**
+	 * Merge stored plugin settings with defaults.
+	 *
+	 * @since 1.0.4
+	 * @param string $option_suffix Option suffix after ALYNT_404_PREFIX.
+	 * @param array  $defaults      Default values.
+	 * @return array
+	 */
+	private function get_merged_settings( $option_suffix, $defaults ) {
+		$settings = get_option( ALYNT_404_PREFIX . $option_suffix, array() );
+		$settings = is_array( $settings ) ? $settings : array();
+		return wp_parse_args( $settings, $defaults );
+	}
+
+	/**
+	 * Output description and custom CSS tags for plugin views.
+	 *
+	 * @since 1.0.4
+	 * @param array $settings Merged settings.
+	 * @return void
+	 */
+	private function render_meta_and_css_tags( $settings ) {
+		if ( ! empty( $settings['meta_description'] ) ) {
+			echo '<meta name="description" content="' . esc_attr( $settings['meta_description'] ) . '" />' . "\n";
+		}
+
+		if ( ! empty( $settings['custom_css'] ) ) {
+			echo '<style type="text/css">' . esc_html( wp_strip_all_tags( $settings['custom_css'] ) ) . '</style>' . "\n";
+		}
 	}
 }

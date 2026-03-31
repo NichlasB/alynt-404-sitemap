@@ -11,6 +11,10 @@ defined( 'ABSPATH' ) || exit;
 get_header();
 
 $settings          = get_option( ALYNT_404_PREFIX . 'sitemap_settings', array() );
+$settings          = wp_parse_args(
+	is_array( $settings ) ? $settings : array(),
+	Alynt_404_Settings_Defaults::get_sitemap_defaults()
+);
 $post_types        = ! empty( $settings['post_types'] ) ? $settings['post_types'] : array( 'post', 'page' );
 $has_visible_posts = false;
 

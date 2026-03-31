@@ -1,1 +1,1 @@
-{"version":1,"defects":[],"times":{"TestSample::test_plugin_constants_defined":0.043}}
+{"version":1,"defects":[],"times":{"TestSample::test_plugin_constants_defined":0.001,"SettingsSanitizerTest::test_sanitize_sitemap_settings_falls_back_to_default_when_slug_is_empty":0.05,"SettingsSanitizerTest::test_sanitize_sitemap_settings_generates_unique_slug_for_taken_routes":0.001}}

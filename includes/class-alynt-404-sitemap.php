@@ -77,27 +77,28 @@ class Alynt_404_Sitemap {
 	 */
 	private function load_dependencies() {
 		// The class responsible for orchestrating the actions and filters.
-		require_once ALYNT_404_PATH . 'includes/class-loader.php';
-		require_once ALYNT_404_PATH . 'includes/class-asset-manifest.php';
+		require_once ALYNT_404_PATH . 'includes/class-alynt-404-loader.php';
+		require_once ALYNT_404_PATH . 'includes/class-alynt-404-asset-manifest.php';
+		require_once ALYNT_404_PATH . 'includes/class-alynt-404-settings-defaults.php';
 
 		if ( is_admin() && ! wp_doing_ajax() ) {
-			require_once ALYNT_404_PATH . 'admin/class-admin.php';
-			require_once ALYNT_404_PATH . 'admin/class-admin-page.php';
-			require_once ALYNT_404_PATH . 'admin/class-settings-sanitizer.php';
-			require_once ALYNT_404_PATH . 'includes/class-color-manager.php';
-			require_once ALYNT_404_PATH . 'includes/class-post-types.php';
-			require_once ALYNT_404_PATH . 'includes/class-utilities.php';
-			require_once ALYNT_404_PATH . 'includes/class-settings-defaults.php';
+			require_once ALYNT_404_PATH . 'admin/class-alynt-404-admin.php';
+			require_once ALYNT_404_PATH . 'admin/class-alynt-404-admin-page.php';
+			require_once ALYNT_404_PATH . 'admin/class-alynt-404-settings-sanitizer.php';
+			require_once ALYNT_404_PATH . 'includes/class-alynt-404-color-manager.php';
+			require_once ALYNT_404_PATH . 'includes/class-alynt-404-post-types.php';
+			require_once ALYNT_404_PATH . 'includes/class-alynt-404-utilities.php';
+			require_once ALYNT_404_PATH . 'includes/class-alynt-404-settings-defaults.php';
 		}
 
 		if ( ! is_admin() ) {
-			require_once ALYNT_404_PATH . 'public/class-public.php';
-			require_once ALYNT_404_PATH . 'includes/class-color-manager.php';
-			require_once ALYNT_404_PATH . 'includes/class-template-loader.php';
+			require_once ALYNT_404_PATH . 'public/class-alynt-404-public.php';
+			require_once ALYNT_404_PATH . 'includes/class-alynt-404-color-manager.php';
+			require_once ALYNT_404_PATH . 'includes/class-alynt-404-template-loader.php';
 		}
 
 		if ( wp_doing_ajax() ) {
-			require_once ALYNT_404_PATH . 'includes/class-ajax-handler.php';
+			require_once ALYNT_404_PATH . 'includes/class-alynt-404-ajax-handler.php';
 		}
 
 		$this->loader = new Alynt_404_Loader();
@@ -165,6 +166,7 @@ class Alynt_404_Sitemap {
 		$this->loader->add_action( 'init', $this, 'add_sitemap_rewrite_rules' );
 		$this->loader->add_action( 'before_delete_post', $this, 'cleanup_deleted_post_references' );
 		$this->loader->add_action( 'delete_attachment', $this, 'cleanup_deleted_post_references' );
+		$this->loader->add_action( 'update_option_' . ALYNT_404_PREFIX . 'sitemap_settings', $this, 'maybe_flush_sitemap_rewrite_rules', 10, 2 );
 	}
 
 	/**
@@ -174,14 +176,27 @@ class Alynt_404_Sitemap {
 	 * @return void
 	 */
 	public function add_sitemap_rewrite_rules() {
-		$settings = get_option( ALYNT_404_PREFIX . 'sitemap_settings', array() );
-		$slug     = $settings['url_slug'] ?? 'sitemap';
+		$this->register_sitemap_rewrite_rule( $this->get_sitemap_slug_from_settings() );
+	}
 
-		add_rewrite_rule(
-			'^' . $slug . '/?$',
-			'index.php?' . ALYNT_404_PREFIX . 'sitemap=1',
-			'top'
-		);
+	/**
+	 * Flush sitemap rewrite rules when the configured slug changes.
+	 *
+	 * @since 1.0.4
+	 * @param mixed $old_value Previous sitemap settings.
+	 * @param mixed $value     Updated sitemap settings.
+	 * @return void
+	 */
+	public function maybe_flush_sitemap_rewrite_rules( $old_value, $value ) {
+		$old_slug = $this->get_sitemap_slug_from_settings( $old_value );
+		$new_slug = $this->get_sitemap_slug_from_settings( $value );
+
+		if ( $old_slug === $new_slug ) {
+			return;
+		}
+
+		$this->register_sitemap_rewrite_rule( $new_slug );
+		flush_rewrite_rules( false );
 	}
 
 	/**
@@ -252,6 +267,45 @@ class Alynt_404_Sitemap {
 			array_values( array_diff( $excluded_ids, array( $post_id ) ) )
 		);
 		update_option( $option_name, $settings );
+	}
+
+	/**
+	 * Register the sitemap rewrite rule for a normalized slug.
+	 *
+	 * @since 1.0.4
+	 * @param string $slug Sanitized sitemap slug.
+	 * @return void
+	 */
+	private function register_sitemap_rewrite_rule( $slug ) {
+		add_rewrite_rule(
+			'^' . $slug . '/?$',
+			'index.php?' . ALYNT_404_PREFIX . 'sitemap=1',
+			'top'
+		);
+	}
+
+	/**
+	 * Extract a safe sitemap slug from stored settings.
+	 *
+	 * @since 1.0.4
+	 * @param mixed $settings Stored sitemap settings or null for the current option.
+	 * @return string
+	 */
+	private function get_sitemap_slug_from_settings( $settings = null ) {
+		$defaults = Alynt_404_Settings_Defaults::get_sitemap_defaults();
+
+		if ( null === $settings ) {
+			$settings = get_option( ALYNT_404_PREFIX . 'sitemap_settings', array() );
+		}
+
+		$settings = is_array( $settings ) ? $settings : array();
+		$slug     = sanitize_title( (string) ( $settings['url_slug'] ?? $defaults['url_slug'] ) );
+
+		if ( '' === $slug ) {
+			$slug = sanitize_title( (string) $defaults['url_slug'] );
+		}
+
+		return '' !== $slug ? $slug : 'sitemap';
 	}
 	/**
 	 * Run the loader to execute all hooks with WordPress.

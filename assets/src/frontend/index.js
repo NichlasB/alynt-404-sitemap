@@ -49,11 +49,13 @@
 
     function showError(message) {
         const $results = $(search.elements.searchResults);
-        $results.html(`
-            <div class="alynt-404-search-item error" role="status">
-                ${message}
-            </div>
-        `);
+        $results.empty().append(
+            $('<div />', {
+                class: 'alynt-404-search-item error',
+                role: 'status',
+                text: message
+            })
+        );
         $('#alynt-404-search-status').text(message);
         search.showResults();
     }
@@ -62,29 +64,46 @@
         const $results = $(search.elements.searchResults);
 
         if (!results.length) {
-            $results.html(`
-                <div class="alynt-404-search-item no-results" role="status">
-                    ${alynt404Search.messages.noResults}
-                </div>
-            `);
+            $results.empty().append(
+                $('<div />', {
+                    class: 'alynt-404-search-item no-results',
+                    role: 'status',
+                    text: alynt404Search.messages.noResults
+                })
+            );
             $('#alynt-404-search-status').text(alynt404Search.messages.noResults);
             search.showResults();
             return;
         }
 
-        const html = results.map((result, index) => `
-            <div class="alynt-404-search-item"
-                 id="alynt-404-result-${index}"
-                 role="option"
-                 tabindex="0"
-                 data-url="${result.url}"
-                 aria-selected="false">
-                <div class="alynt-404-search-item-title">${result.title}</div>
-                <div class="alynt-404-search-item-type">${result.type}</div>
-            </div>
-        `).join('');
+        $results.empty();
 
-        $results.html(html);
+        results.forEach(function(result, index) {
+            const $item = $('<div />', {
+                class: 'alynt-404-search-item',
+                id: `alynt-404-result-${index}`,
+                role: 'option',
+                tabindex: 0,
+                'aria-selected': 'false'
+            });
+
+            $item.attr('data-url', result.url || '');
+            $item.append(
+                $('<div />', {
+                    class: 'alynt-404-search-item-title',
+                    text: result.title || ''
+                })
+            );
+            $item.append(
+                $('<div />', {
+                    class: 'alynt-404-search-item-type',
+                    text: result.type || ''
+                })
+            );
+
+            $results.append($item);
+        });
+
         search.showResults();
     }
 

@@ -43,13 +43,24 @@ function alynt_404_delete_prefixed_options( $prefixes ) {
 }
 
 /**
- * Delete plugin-specific post and user meta entries.
+ * Check whether this site should preserve plugin data on uninstall.
+ *
+ * @since 1.0.4
+ *
+ * @return bool True when data preservation is enabled.
+ */
+function alynt_404_should_preserve_data() {
+	return (bool) get_option( 'alynt_404_preserve_data_on_uninstall', false );
+}
+
+/**
+ * Delete plugin-specific post meta entries.
  *
  * @since 1.0.0
  *
  * @return void
  */
-function alynt_404_delete_prefixed_meta() {
+function alynt_404_delete_prefixed_post_meta() {
 	global $wpdb;
 	$meta_like = $wpdb->esc_like( 'alynt_404_' ) . '%';
 	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Uninstall cleanup deletes plugin-owned post meta entries.
@@ -59,6 +70,19 @@ function alynt_404_delete_prefixed_meta() {
 			$meta_like
 		)
 	);
+}
+
+/**
+ * Delete plugin-specific user meta entries.
+ *
+ * @since 1.0.4
+ *
+ * @return void
+ */
+function alynt_404_delete_prefixed_user_meta() {
+	global $wpdb;
+	$meta_like = $wpdb->esc_like( 'alynt_404_' ) . '%';
+
 	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Uninstall cleanup deletes plugin-owned user meta entries.
 	$wpdb->query(
 		$wpdb->prepare(
@@ -66,6 +90,62 @@ function alynt_404_delete_prefixed_meta() {
 			$meta_like
 		)
 	);
+}
+
+/**
+ * Recursively delete a directory and all contents.
+ *
+ * @since 1.0.4
+ *
+ * @param string $dir          Directory to delete.
+ * @param string $uploads_root Uploads basedir for safety scoping.
+ *
+ * @return void
+ */
+function alynt_404_delete_directory_recursive( $dir, $uploads_root ) {
+	$dir_real     = realpath( $dir );
+	$uploads_real = realpath( $uploads_root );
+
+	if ( ! $dir_real || ! $uploads_real ) {
+		return;
+	}
+
+	$normalized_dir     = wp_normalize_path( $dir_real );
+	$normalized_uploads = trailingslashit( wp_normalize_path( $uploads_real ) );
+
+	// Safety check: only remove paths inside uploads.
+	if ( strpos( $normalized_dir, $normalized_uploads ) !== 0 ) {
+		return;
+	}
+
+	$entries = scandir( $dir_real );
+	if ( ! is_array( $entries ) ) {
+		return;
+	}
+
+	foreach ( $entries as $entry ) {
+		if ( '.' === $entry || '..' === $entry ) {
+			continue;
+		}
+
+		$entry_path = $dir_real . DIRECTORY_SEPARATOR . $entry;
+		if ( is_link( $entry_path ) ) {
+			wp_delete_file( $entry_path );
+			continue;
+		}
+
+		if ( is_dir( $entry_path ) ) {
+			alynt_404_delete_directory_recursive( $entry_path, $uploads_root );
+			continue;
+		}
+
+		if ( is_file( $entry_path ) ) {
+			wp_delete_file( $entry_path );
+		}
+	}
+
+	// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_rmdir -- Recursive uninstall cleanup requires removing plugin-owned directories.
+	rmdir( $dir_real );
 }
 
 /**
@@ -82,25 +162,7 @@ function alynt_404_cleanup_generated_files() {
 		return;
 	}
 
-	$files = glob( $css_dir . '/*.css' );
-	if ( $files ) {
-		foreach ( $files as $file ) {
-			if ( is_file( $file ) && preg_match( '/^[a-zA-Z0-9_-]+\.css$/', basename( $file ) ) ) {
-				wp_delete_file( $file );
-			}
-		}
-	}
-
-	if ( file_exists( $css_dir . '/.htaccess' ) ) {
-		wp_delete_file( $css_dir . '/.htaccess' );
-	}
-	if ( file_exists( $css_dir . '/index.php' ) ) {
-		wp_delete_file( $css_dir . '/index.php' );
-	}
-	if ( is_dir( $css_dir ) ) {
-		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_rmdir -- Directory should only be removed after generated files are deleted.
-		rmdir( $css_dir );
-	}
+	alynt_404_delete_directory_recursive( $css_dir, $upload_dir['basedir'] );
 }
 
 /**
@@ -130,31 +192,71 @@ function alynt_404_clear_cron_hooks() {
  *
  * @since 1.0.0
  *
+ * @param bool $delete_user_meta Whether to remove plugin-owned user meta.
+ *
+ * @return bool True when this site's plugin data was removed.
+ */
+function alynt_404_clean_current_site_data( $delete_user_meta = true ) {
+	if ( alynt_404_should_preserve_data() ) {
+		return false;
+	}
+
+	alynt_404_delete_prefixed_options(
+		array(
+			'alynt_404_%',
+			'_transient_alynt_404_%',
+			'_transient_timeout_alynt_404_%',
+		)
+	);
+	alynt_404_delete_prefixed_post_meta();
+
+	if ( $delete_user_meta ) {
+		alynt_404_delete_prefixed_user_meta();
+	}
+
+	alynt_404_cleanup_generated_files();
+	alynt_404_clear_cron_hooks();
+	delete_option( 'rewrite_rules' );
+	flush_rewrite_rules();
+
+	return true;
+}
+
+/**
+ * Clean up plugin data for single-site or across multisite.
+ *
+ * @since 1.0.4
+ *
  * @return void
  */
 function alynt_404_clean_plugin_data() {
-	global $wpdb;
-	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Transaction boundaries are direct SQL statements.
-	$wpdb->query( 'START TRANSACTION' );
+	if ( ! is_multisite() ) {
+		alynt_404_clean_current_site_data();
+		return;
+	}
 
-	try {
-		alynt_404_delete_prefixed_options(
-			array(
-				'alynt_404_%',
-				'_transient_alynt_404_%',
-				'_transient_timeout_alynt_404_%',
-			)
-		);
-		alynt_404_delete_prefixed_meta();
-		alynt_404_cleanup_generated_files();
-		alynt_404_clear_cron_hooks();
-		delete_option( 'rewrite_rules' );
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Transaction boundary for uninstall cleanup.
-		$wpdb->query( 'COMMIT' );
-		flush_rewrite_rules();
-	} catch ( Exception $e ) {
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Transaction rollback on uninstall failure.
-		$wpdb->query( 'ROLLBACK' );
+	$site_ids = get_sites(
+		array(
+			'fields' => 'ids',
+		)
+	);
+
+	$should_delete_user_meta = true;
+
+	foreach ( $site_ids as $site_id ) {
+		switch_to_blog( (int) $site_id );
+		if ( alynt_404_should_preserve_data() ) {
+			$should_delete_user_meta = false;
+			restore_current_blog();
+			continue;
+		}
+
+		alynt_404_clean_current_site_data( false );
+		restore_current_blog();
+	}
+
+	if ( $should_delete_user_meta ) {
+		alynt_404_delete_prefixed_user_meta();
 	}
 }
 

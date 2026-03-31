@@ -30,7 +30,7 @@ OpenAI-only substitute: GPT-5.4 -> GPT-5.3 Codex
 Cheaper acceptable alternative: GPT-5.4 Mini -> GPT-5.3 Codex
 Confidence: High
 Why:
-- There is one clearly oversized PHP file (`admin/class-admin.php`, 433 lines), so further decomposition would still be worthwhile.
+- There is one clearly oversized PHP file (`admin/class-alynt-404-admin.php`, 433 lines), so further decomposition would still be worthwhile.
 - The plugin already has class and directory boundaries, so this looks like obvious decomposition work rather than architecture-heavy redesign.
 
 3. Documentation Review

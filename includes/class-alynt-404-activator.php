@@ -66,7 +66,7 @@ class Alynt_404_Activator {
 	 */
 	private static function set_default_options() {
 		if ( ! class_exists( 'Alynt_404_Settings_Defaults' ) ) {
-			require_once ALYNT_404_PATH . 'includes/class-settings-defaults.php';
+			require_once ALYNT_404_PATH . 'includes/class-alynt-404-settings-defaults.php';
 		}
 
 		$default_colors  = Alynt_404_Settings_Defaults::get_color_defaults();
@@ -94,8 +94,18 @@ class Alynt_404_Activator {
 	 * @since 1.0.0
 	 */
 	private static function setup_rewrite_rules() {
+		$defaults     = Alynt_404_Settings_Defaults::get_sitemap_defaults();
 		$settings     = get_option( ALYNT_404_PREFIX . 'sitemap_settings', array() );
-		$sitemap_slug = $settings['url_slug'] ?? 'sitemap';
+		$settings     = is_array( $settings ) ? $settings : array();
+		$sitemap_slug = sanitize_title( (string) ( $settings['url_slug'] ?? $defaults['url_slug'] ) );
+
+		if ( '' === $sitemap_slug ) {
+			$sitemap_slug = sanitize_title( (string) $defaults['url_slug'] );
+		}
+
+		if ( '' === $sitemap_slug ) {
+			$sitemap_slug = 'sitemap';
+		}
 
 		// Add rewrite rule for sitemap.
 		add_rewrite_rule(

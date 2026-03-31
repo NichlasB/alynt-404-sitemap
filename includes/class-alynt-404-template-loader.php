@@ -119,20 +119,18 @@ class Alynt_404_Template_Loader {
 			return $template;
 		}
 
-		// Check if theme has custom sitemap template.
-		$theme_template = locate_template( 'sitemap.php' );
+		// Prefer the plugin-owned sitemap template for the plugin-owned route.
+		$custom_template = ALYNT_404_PATH . 'templates/sitemap.php';
+		if ( file_exists( $custom_template ) ) {
+			return $custom_template;
+		}
 
+		// Fall back to a theme template only if our bundled template is unavailable.
+		$theme_template = locate_template( 'sitemap.php' );
 		if ( $theme_template ) {
 			// Add our content filter.
 			add_filter( 'the_content', array( $this, 'get_sitemap_content' ) );
 			return $theme_template;
-		}
-
-		// Load our custom sitemap template.
-		$custom_template = ALYNT_404_PATH . 'templates/sitemap.php';
-
-		if ( file_exists( $custom_template ) ) {
-			return $custom_template;
 		}
 
 		return $template;
@@ -158,7 +156,7 @@ class Alynt_404_Template_Loader {
 			include $template_path;
 		} else {
 			// Fallback to inline template if file doesn't exist.
-			$settings = get_option( ALYNT_404_PREFIX . '404_settings', array() );
+			$settings = $this->get_merged_settings( '404_settings', Alynt_404_Settings_Defaults::get_404_defaults() );
 			require ALYNT_404_PATH . 'templates/partials/404-content.php';
 		}
 
@@ -185,7 +183,7 @@ class Alynt_404_Template_Loader {
 			include $template_path;
 		} else {
 			// Fallback to inline template if file doesn't exist.
-			$settings     = get_option( ALYNT_404_PREFIX . 'sitemap_settings', array() );
+			$settings     = $this->get_merged_settings( 'sitemap_settings', Alynt_404_Settings_Defaults::get_sitemap_defaults() );
 			$post_types   = ! empty( $settings['post_types'] ) ? $settings['post_types'] : array( 'post', 'page' );
 			$excluded_ids = ! empty( $settings['excluded_ids'] ) ? array_map( 'trim', explode( ',', $settings['excluded_ids'] ) ) : array();
 
@@ -202,7 +200,7 @@ class Alynt_404_Template_Loader {
 	 * @return string CSS classes for responsive layout.
 	 */
 	public function get_responsive_classes() {
-		$settings = get_option( ALYNT_404_PREFIX . 'sitemap_settings', array() );
+		$settings = $this->get_merged_settings( 'sitemap_settings', Alynt_404_Settings_Defaults::get_sitemap_defaults() );
 
 		$classes = array(
 			'desktop-cols-' . ( $settings['columns_desktop'] ?? 4 ),
@@ -221,5 +219,19 @@ class Alynt_404_Template_Loader {
 	 */
 	public function is_sitemap() {
 		return (bool) get_query_var( ALYNT_404_PREFIX . 'sitemap' );
+	}
+
+	/**
+	 * Merge stored plugin settings with defaults.
+	 *
+	 * @since 1.0.4
+	 * @param string $option_suffix Option suffix after ALYNT_404_PREFIX.
+	 * @param array  $defaults      Default values.
+	 * @return array
+	 */
+	private function get_merged_settings( $option_suffix, $defaults ) {
+		$settings = get_option( ALYNT_404_PREFIX . $option_suffix, array() );
+		$settings = is_array( $settings ) ? $settings : array();
+		return wp_parse_args( $settings, $defaults );
 	}
 }

@@ -84,13 +84,28 @@ class Alynt_404_Settings_Sanitizer {
 
 		$sanitized['button_links'] = array();
 		if ( ! empty( $merged['button_links'] ) && is_array( $merged['button_links'] ) ) {
-			foreach ( $merged['button_links'] as $button ) {
+			foreach ( array_slice( $merged['button_links'], 0, 4 ) as $button ) {
 				if ( empty( $button['text'] ) || empty( $button['url'] ) ) {
 					continue;
 				}
+
+				$validated_url = $utilities->validate_url( $button['url'] );
+				if ( false === $validated_url ) {
+					continue;
+				}
+
 				$sanitized['button_links'][] = array(
 					'text' => sanitize_text_field( $button['text'] ),
-					'url'  => esc_url_raw( $button['url'] ),
+					'url'  => $validated_url,
+				);
+			}
+
+			if ( count( $merged['button_links'] ) > 4 ) {
+				add_settings_error(
+					'alynt_404_messages',
+					'button_links_truncated',
+					__( 'Only the first four quick links were saved.', 'alynt-404-sitemap' ),
+					'warning'
 				);
 			}
 		}
@@ -155,7 +170,30 @@ class Alynt_404_Settings_Sanitizer {
 	 * @return string Sanitized unique sitemap slug.
 	 */
 	private function sanitize_sitemap_slug( $raw_slug, $utilities ) {
-		$slug = $utilities->sanitize_slug( $raw_slug );
+		$defaults     = Alynt_404_Settings_Defaults::get_sitemap_defaults();
+		$current      = get_option( ALYNT_404_PREFIX . 'sitemap_settings', array() );
+		$current      = is_array( $current ) ? $current : array();
+		$current_slug = $utilities->sanitize_slug( $current['url_slug'] ?? $defaults['url_slug'] );
+		$slug         = $utilities->sanitize_slug( $raw_slug );
+
+		if ( '' === $slug ) {
+			$slug = $utilities->sanitize_slug( $defaults['url_slug'] );
+			add_settings_error(
+				'alynt_404_messages',
+				'empty_slug',
+				__( 'URL slug cannot be empty. Reverted to the default sitemap slug.', 'alynt-404-sitemap' ),
+				'warning'
+			);
+		}
+
+		if ( '' === $slug ) {
+			$slug = 'sitemap';
+		}
+
+		if ( $slug === $current_slug ) {
+			return $slug;
+		}
+
 		if ( $utilities->is_slug_available( $slug ) ) {
 			return $slug;
 		}

@@ -122,11 +122,53 @@ class Alynt_404_Utilities {
 	 * @return boolean True if available.
 	 */
 	public function is_slug_available( $slug ) {
+		$slug = $this->sanitize_slug( $slug );
+		if ( '' === $slug ) {
+			return false;
+		}
+
+		$public_post_types = get_post_types(
+			array(
+				'public' => true,
+			),
+			'names'
+		);
+
 		// Check pages.
-		$page = get_page_by_path( $slug, OBJECT, 'page' );
+		$page = get_page_by_path( $slug, OBJECT, $public_post_types );
 
 		if ( $page ) {
 			return false;
+		}
+
+		foreach ( $public_post_types as $post_type ) {
+			$post_type_object = get_post_type_object( $post_type );
+			if ( ! $post_type_object ) {
+				continue;
+			}
+
+			$archive_slug = $post_type_object->has_archive;
+			if ( true === $archive_slug ) {
+				$archive_slug = $post_type_object->rewrite['slug'] ?? $post_type;
+			}
+
+			if ( is_string( $archive_slug ) && trim( $archive_slug, '/' ) === $slug ) {
+				return false;
+			}
+		}
+
+		$public_taxonomies = get_taxonomies(
+			array(
+				'public' => true,
+			),
+			'objects'
+		);
+
+		foreach ( $public_taxonomies as $taxonomy ) {
+			$taxonomy_slug = $taxonomy->rewrite['slug'] ?? '';
+			if ( is_string( $taxonomy_slug ) && trim( $taxonomy_slug, '/' ) === $slug ) {
+				return false;
+			}
 		}
 
 		// Check if slug is used by other plugins or custom routes.
@@ -146,7 +188,19 @@ class Alynt_404_Utilities {
 			)
 		);
 
-		return ! in_array( $slug, $reserved_slugs, true );
+		if ( in_array( $slug, $reserved_slugs, true ) ) {
+			return false;
+		}
+
+		$rewrite_rules = get_option( 'rewrite_rules', array() );
+		if ( is_array( $rewrite_rules ) ) {
+			$root_rule = '^' . $slug . '/?$';
+			if ( isset( $rewrite_rules[ $root_rule ] ) ) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	/**
@@ -285,8 +339,9 @@ class Alynt_404_Utilities {
 	 */
 	public function cleanup_transients() {
 		global $wpdb;
-		$prefix_like      = $wpdb->esc_like( ALYNT_404_PREFIX );
-		$current_time     = time();
+		$prefix_like  = $wpdb->esc_like( ALYNT_404_PREFIX );
+		$current_time = time();
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Targeted query only checks plugin-owned transient timeout rows.
 		$expired_timeouts = $wpdb->get_col(
 			$wpdb->prepare(
 				"SELECT option_name FROM {$wpdb->options}
