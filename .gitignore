@@ -59,3 +59,7 @@ composer.phar
 coverage/
 pre-release-model-recommendations.tmp.txt
 .phpunit.result.cache
+
+# Local-only workflow files
+deploy.sh
+session-context.tmp.md

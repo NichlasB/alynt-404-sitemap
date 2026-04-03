@@ -1,4 +1,6 @@
 #!/bin/bash
+# Copy this file to deploy.sh and customize deploy.sh locally.
+# Keep deploy.sh gitignored; commit only deploy.example.sh.
 # Deploy script for alynt-404-sitemap
 set -e
 
@@ -15,22 +17,31 @@ rsync -avz --delete \
   --exclude='node_modules' \
   --exclude='vendor' \
   --exclude='tests' \
+  --exclude='scripts/' \
+  --exclude='build/' \
   --exclude='coverage' \
-  --exclude='assets/src' \
+  --exclude='assets/src/' \
   --exclude='.DS_Store' \
   --exclude='.editorconfig' \
+  --exclude='.gitattributes' \
   --exclude='.gitignore' \
   --exclude='.phpcs.xml' \
+  --exclude='.phpcs.xml.dist' \
   --exclude='.phpunit.result.cache' \
   --exclude='.env' \
+  --exclude='.env.local' \
   --exclude='composer.phar' \
   --exclude='composer.json' \
   --exclude='composer.lock' \
   --exclude='package.json' \
   --exclude='package-lock.json' \
   --exclude='phpunit.xml' \
-  --exclude='scripts/' \
+  --exclude='phpunit.xml.dist' \
   --exclude='deploy.sh' \
+  --exclude='deploy.example.sh' \
+  --exclude='session-context.tmp.md' \
+  --exclude='README.md' \
+  --exclude='CHANGELOG.md' \
   --exclude='pre-release-model-recommendations.tmp.txt' \
   --exclude='*.map' \
   ./ "${REMOTE_HOST}:${REMOTE_PATH}/"
